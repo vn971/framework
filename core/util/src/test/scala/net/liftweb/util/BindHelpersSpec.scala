@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2010 WorldWide Conferencing, LLC
+ * Copyright 2007-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package util {
+package net.liftweb
+package util
 
-import _root_.org.specs._
-import _root_.org.specs.runner._
-import _root_.scala.xml._
+import xml._
+import org.specs.Specification
 import common._
+import BindHelpers._
 
-object BindHelpersSpec extends Specification  {
-  import BindHelpers._
-  
+
+/**
+ * Systems under specification for BindHelpers.
+ */
+object BindHelpersSpec extends Specification("BindHelpers Specification") {
+
   "the mixinAttributes function" should {
     "mixin in all the attributes" in {
       mixinAttributes(<input />)(<input id="10" class="wee" />) must ==/(<input class="wee" id="10"></input>)
@@ -339,11 +342,9 @@ object BindHelpersSpec extends Specification  {
     }
   }
 }
-class BindHelpersTest extends JUnit4(BindHelpersSpec)
 
 
 object CssBindHelpersSpec extends Specification  {
-  import BindHelpers._
 
   "css bind helpers" should {
     "clear clearable" in {
@@ -771,7 +772,7 @@ object CssBindHelpersSpec extends Specification  {
 
   }
 }
-class CssBindHelpersTest extends JUnit4(CssBindHelpersSpec)
+
 
 /**
  * This class doesn't actually perform any tests, but insures that
@@ -878,8 +879,4 @@ object CheckTheImplicitConversionsForToCssBindPromoter {
   def nsToOptString(in: NodeSeq): Option[String] = Some(in.text)
   def nsToBoxString(in: NodeSeq): Box[String] = Full(in.text)
   def nsToSeqString(in: NodeSeq): Seq[String] = List(in.text)
-}
-
-
-}
 }
