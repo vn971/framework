@@ -18,7 +18,9 @@ package net.liftweb
 package util
 
 import xml._
+
 import org.specs.Specification
+
 import common._
 import BindHelpers._
 
