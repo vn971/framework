@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 WorldWide Conferencing, LLC
+ * Copyright 2010 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,15 @@
 package net.liftweb
 package common
 
-import org.specs.Specification
+import org.specs2.mutable._
+import _root_.net.liftweb.common.Box._
 
-
-/**
- * System under specification for Heterogeneous List.
- */
-object HListSpec extends Specification("HList Specification") {
-
+class HListTest extends SpecificationWithJUnit {
   "An HList" should {
-
-    "get the types right" in {
+    "get types right" in {
       import HLists._
 
       val x = 1 :+: "Foo" :+: HNil
-
       val head: Int = x.head
       val head2: String = x.tail.head
 
@@ -41,8 +35,7 @@ object HListSpec extends Specification("HList Specification") {
   }
 
   "A combinable box" should {
-
-    "have a box built with a failure result in a failure" in {
+    "build a box with a failure must be a failure" in {
       import CombinableBox._
 
       val x = Full("a") :&: Full(1) :&: Empty
@@ -50,11 +43,9 @@ object HListSpec extends Specification("HList Specification") {
       // result in a failure
       x match {
         case Left(_) => true must_== true
-        case _       => fail("Full elements available")
       }
     }
-
-    "be able to build a box with all the Full elements matching" in {
+    "build a box with all Full must match" in {
       import CombinableBox._
       import HLists._
 
@@ -71,11 +62,9 @@ object HListSpec extends Specification("HList Specification") {
 
           true must_== true
         }
-        case Left(_) => fail("Failure elements available")
       }
     }
-
-    "be usable in for comprehension" in {
+    "Use in for comprehension" in {
       import CombinableBox._
       import HLists._
 
@@ -87,6 +76,4 @@ object HListSpec extends Specification("HList Specification") {
       res must_== Full(6)
     }
   }
-
 }
-

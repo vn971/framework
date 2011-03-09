@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 WorldWide Conferencing, LLC
+ * Copyright 2010 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,23 @@
 package net.liftweb
 package common
 
-import org.specs.Specification
+import org.specs2.mutable._
+import _root_.net.liftweb.common.Box._
 
+class MyTopClass extends Logger {
+  val x=1
+  debug("Top level class logging")
+}
+
+object MyTopObj extends Logger {
+  val x=1
+  debug("Top level object logging")
+}
 
 /**
- * System under specification for Logging.
- *
- * Tests rely on logback being in the classpath, so no configuration should be necessary.
+ * Test relies on logback being on the classpath, so no configuration necessary
  */
-object LoggingSpec extends Specification("Logging Specification") {
+class LoggingUnitTest extends SpecificationWithJUnit {
   "Logging" can {
     "be mixed directly into object" in {
       object MyObj extends Logger {
@@ -52,7 +60,7 @@ object LoggingSpec extends Specification("Logging Specification") {
       val logger = Logger("MyLogger")
       
       logger.info("Logged with my named logger")
-      1 must_== 1
+      success
     }
     
     "log static MDC values" in {
@@ -88,7 +96,7 @@ object LoggingSpec extends Specification("Logging Specification") {
       logger.info("Logged with mdc1=(1,2), mdc2=yy")
       MDC.clear
       logger.info("No MDC values")
-      1 must_== 1
+      success
     }
     "trace function results" in {
       object MyObj extends Logger {
@@ -98,6 +106,7 @@ object LoggingSpec extends Specification("Logging Specification") {
           val x = 1
       }
       MyObj.x
+	  success
     }
 
     "be used in different levels and yield different loggers" in {
@@ -119,16 +128,3 @@ object LoggingSpec extends Specification("Logging Specification") {
     }
   }
 }
-
-
-class MyTopClass extends Logger {
-  val x=1
-  debug("Top level class logging")
-}
-
-
-object MyTopObj extends Logger {
-  val x=1
-  debug("Top level object logging")
-}
-
