@@ -17,7 +17,8 @@
 package net.liftweb
 package json
 
-import org.specs.{ScalaCheck, Specification}
+import org.specs2.ScalaCheck
+import org.specs2.mutable._
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Prop._
 
@@ -25,16 +26,17 @@ import org.scalacheck.Prop._
 /**
  * System under specification for JSON Parser.
  */
-object JsonParserSpec extends Specification("JSON Parser Specification") with JValueGen with ScalaCheck {
-  "Any valid json can be parsed" in {
-    val parsing = (json: JValue) => { parse(Printer.pretty(render(json))); true }
-    forAll(parsing) must pass
+object JsonParserSpec extends Specification with JValueGen with ScalaCheck {
+  "JSON Parser Specification".title
+  
+  "Any valid json can be parsed" in check { (json: JValue) => 
+    parse(Printer.pretty(render(json))) must not(throwA[java.lang.Exception])
   }
 
-  "Buffer size does not change parsing result" in {
+  "Buffer size does not change parsing result" in checkProp {
     val bufSize = Gen.choose(2, 64)
     val parsing = (x: JValue, s1: Int, s2: Int) => { parseVal(x, s1) == parseVal(x, s2) }
-    forAll(genObject, bufSize, bufSize)(parsing) must pass
+    forAll(genObject, bufSize, bufSize)(parsing)
   }
 
   "Parsing is thread safe" in {
@@ -44,7 +46,7 @@ object JsonParserSpec extends Specification("JSON Parser Specification") with JV
     val executor = Executors.newFixedThreadPool(100)
     val results = (0 to 100).map(_ =>
       executor.submit(new Callable[JValue] { def call = parse(json) })).toList.map(_.get)
-    results.zip(results.tail).forall(pair => pair._1 == pair._2) mustEqual true
+    results.zip(results.tail).forall(pair => pair._1 == pair._2) must_== true
   }
 
   "All valid string escape characters can be parsed" in {
@@ -52,8 +54,8 @@ object JsonParserSpec extends Specification("JSON Parser Specification") with JV
   }
 
   "Unclosed string literal fails parsing" in {
-    parseOpt("{\"foo\":\"sd") mustEqual None
-    parseOpt("{\"foo\":\"sd}") mustEqual None
+    parseOpt("{\"foo\":\"sd") must_== None
+    parseOpt("{\"foo\":\"sd}") must_== None
   }
 
   "The EOF has reached when the Reader returns EOF" in {
@@ -69,7 +71,7 @@ object JsonParserSpec extends Specification("JSON Parser Specification") with JV
     }
 
     val json = JsonParser.parse(new StingyReader(""" ["hello"] """))
-    json mustEqual JArray(JString("hello") :: Nil)
+    json must_== JArray(JString("hello") :: Nil)
   }
 
   implicit def arbJValue: Arbitrary[JValue] = Arbitrary(genObject)

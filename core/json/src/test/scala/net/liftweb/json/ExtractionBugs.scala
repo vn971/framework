@@ -17,28 +17,30 @@
 package net.liftweb
 package json
 
-import org.specs.Specification
+import org.specs2.mutable.Specification
 
 
 /**
  * System under specification for Extraction bugs.
  */
-object ExtractionBugs extends Specification("Extraction bugs Specification") {
+object ExtractionBugs extends Specification {
+  "Extraction bugs Specification".title
+  
   implicit val formats = DefaultFormats
   
   "ClassCastException (BigInt) regression 2 must pass" in {
     val opt = OptionOfInt(Some(39))    
-    Extraction.decompose(opt).extract[OptionOfInt].opt.get mustEqual 39
+    Extraction.decompose(opt).extract[OptionOfInt].opt.get must_== 39
   }
 
   "Extraction should not fail when Maps values are Lists" in {
     val m = PMap(Map("a" -> List("b"), "c" -> List("d")))
-    Extraction.decompose(m).extract[PMap] mustEqual m
+    Extraction.decompose(m).extract[PMap] must_== m
   }
 
   "Extraction should always choose constructor with the most arguments if more than one constructor exists" in {
     val args = Meta.Reflection.primaryConstructorArgs(classOf[ManyConstructors])
-    args.size mustEqual 4
+    args.size must_== 4
   }
 
   case class OptionOfInt(opt: Option[Int])

@@ -17,13 +17,14 @@
 package net.liftweb
 package json
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 
 /**
  * System under specification for Lotto Examples.
  */
-object LottoExample extends Specification("Lotto Examples") {
+object LottoExample extends Specification {
+  "Lotto Examples".title
   import JsonDSL._
 
   implicit val formats = DefaultFormats
@@ -45,11 +46,11 @@ object LottoExample extends Specification("Lotto Examples") {
           (("winner-id" -> w.`winner-id`) ~
            ("numbers" -> w.numbers))}))
 
-  compact(render(json)) mustEqual """{"lotto":{"id":5,"winning-numbers":[2,45,34,23,7,5,3],"winners":[{"winner-id":23,"numbers":[2,45,34,23,3,5]},{"winner-id":54,"numbers":[52,3,12,11,18,22]}]}}"""
+  compact(render(json)) must_== """{"lotto":{"id":5,"winning-numbers":[2,45,34,23,7,5,3],"winners":[{"winner-id":23,"numbers":[2,45,34,23,3,5]},{"winner-id":54,"numbers":[52,3,12,11,18,22]}]}}"""
 
-  (json \ "lotto" \ "winners")(0).extract[Winner] mustEqual Winner(23, List(2, 45, 34, 23, 3, 5))
+  (json \ "lotto" \ "winners")(0).extract[Winner] must_== Winner(23, List(2, 45, 34, 23, 3, 5))
 
-  (json \ "lotto").extract[Lotto] mustEqual lotto
+  (json \ "lotto").extract[Lotto] must_== lotto
 
-  json.values mustEqual Map("lotto" -> Map("id" -> 5, "winning-numbers" -> List(2, 45, 34, 23, 7, 5, 3), "draw-date" -> None, "winners" -> List(Map("winner-id" -> 23, "numbers" -> List(2, 45, 34, 23, 3, 5)), Map("winner-id" -> 54, "numbers" -> List(52, 3, 12, 11, 18, 22)))))
+  json.values must_== Map("lotto" -> Map("id" -> 5, "winning-numbers" -> List(2, 45, 34, 23, 7, 5, 3), "draw-date" -> None, "winners" -> List(Map("winner-id" -> 23, "numbers" -> List(2, 45, 34, 23, 3, 5)), Map("winner-id" -> 54, "numbers" -> List(52, 3, 12, 11, 18, 22)))))
 }

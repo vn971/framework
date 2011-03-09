@@ -19,16 +19,16 @@ package json
 
 import util.control.Exception._
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 
 object ParserBugs extends Specification {
   "Unicode ffff is a valid char in string literal" in {
-    parseOpt(""" {"x":"\uffff"} """).isDefined mustEqual true
+    parseOpt(""" {"x":"\uffff"} """).isDefined must_== true
   }
 
   "Does not hang when parsing 2.2250738585072012e-308" in {
-    allCatch.opt(parse(""" [ 2.2250738585072012e-308 ] """)) mustEqual None
-    allCatch.opt(parse(""" [ 22.250738585072012e-309 ] """)) mustEqual None
+    allCatch.opt(parse(""" [ 2.2250738585072012e-308 ] """)) must_== None
+    allCatch.opt(parse(""" [ 22.250738585072012e-309 ] """)) must_== None
   }
 }
