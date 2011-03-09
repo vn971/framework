@@ -20,7 +20,7 @@ package ext
 
 import org.joda.time._
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import common._
 import json.Serialization.{read, write => swrite}
@@ -29,8 +29,9 @@ import json.Serialization.{read, write => swrite}
 /**
  * System under specification for JodaTimeSerializer.
  */
-object JodaTimeSerializerSpec extends Specification("JodaTimeSerializer Specification") {
-
+object JodaTimeSerializerSpec extends Specification {
+  "JodaTimeSerializer Specification".title
+  
   implicit val formats = Serialization.formats(NoTypeHints) ++ JodaTimeSerializers.all
 
   "Serialize joda time types" in {
@@ -38,7 +39,7 @@ object JodaTimeSerializerSpec extends Specification("JodaTimeSerializer Specific
                       new DateTime, new DateMidnight, new Interval(1000, 50000),
                       new LocalDate(2011, 1, 16), new LocalTime(16, 52, 10))
     val ser = swrite(x)
-    read[JodaTypes](ser) mustEqual x
+    read[JodaTypes](ser) must_== x
   }
 
   "DateTime and DateMidnight use configured date format" in {
@@ -48,13 +49,13 @@ object JodaTimeSerializerSpec extends Specification("JodaTimeSerializer Specific
 
     val x = Dates(new DateTime(2011, 1, 16, 10, 32, 0, 0, DateTimeZone.UTC), new DateMidnight(2011, 1, 16, DateTimeZone.UTC))
     val ser = swrite(x)
-    ser mustEqual """{"dt":"2011-01-16 10:32:00Z","dm":"2011-01-16 00:00:00Z"}"""
+    ser must_== """{"dt":"2011-01-16 10:32:00Z","dm":"2011-01-16 00:00:00Z"}"""
   }
 
   "null is serialized as JSON null" in {
     val x = JodaTypes(null, null, null, null, null, null, null)
     val ser = swrite(x)
-    read[JodaTypes](ser) mustEqual x
+    read[JodaTypes](ser) must_== x
   }
 }
 
