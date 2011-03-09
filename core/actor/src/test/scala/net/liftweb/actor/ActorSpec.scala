@@ -26,6 +26,7 @@ import common._
  * Systems under specification for Lift Actor.
  */
 object ActorSpec extends Specification {
+
   "Actor Specification".title
   
   "A Scala Actor" should {
@@ -36,13 +37,13 @@ object ActorSpec extends Specification {
     "support common features" in commonFeatures(new MyJavaActor)
   }
 
-  private def commonFeatures(actor: LiftActor) = {
+  private def commonFeatures(actor: =>LiftActor) = {
 
     "allow setting and getting of a value" in {
       val a = actor
       a ! Set(33)
       a !? Get()
-      (a.!?(50, Get())) must be_===(Full(Answer(33))).eventually
+     (a.!?(50, Get())) must be_===(Full(Answer(33))).eventually
     }
 
     "allow setting and getting of a value with subclass of Get()" in {
@@ -55,13 +56,15 @@ object ActorSpec extends Specification {
     "allow adding of a value" in {
       val a = actor
       a ! Set(33)
-      (a !< Add(44)).get(50) must be_===(Full(Answer(77))).eventually
+      val r = (a !< Add(44)).get(50) 
+	  r must be_===(Full(Answer(77))).eventually
     }
 
     "allow subtracting of a value" in {
       val a = actor
       a ! Set(33)
-      (a !< Sub(11)).get(50) must be_===(Full(Answer(22))).eventually
+      val r = (a !< Sub(11)).get(50) 
+	  r must be_===(Full(Answer(22))).eventually
     }
 
     "properly timeout" in {
