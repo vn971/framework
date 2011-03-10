@@ -16,10 +16,10 @@
 
 package net.liftweb
 package util
-
+	
 import xml._
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import common._
 import BindHelpers._
@@ -28,8 +28,9 @@ import BindHelpers._
 /**
  * Systems under specification for BindHelpers.
  */
-object BindHelpersSpec extends Specification("BindHelpers Specification") {
-
+object BindHelpersSpec extends Specification {
+  "BindHelpers Specification".title
+  
   "the mixinAttributes function" should {
     "mixin in all the attributes" in {
       mixinAttributes(<input />)(<input id="10" class="wee" />) must ==/(<input class="wee" id="10"></input>)
@@ -403,6 +404,7 @@ object CssBindHelpersSpec extends Specification  {
       val xf = "* [id]" #> "xx" &
       "* [style]" #> "border:thin solid black" &
       "* *" #> <a/>
+	  success
     }
 
     "not stack overflow on Elem" in {
@@ -411,6 +413,7 @@ object CssBindHelpersSpec extends Specification  {
       "* *+" #> <a/>
 
       xf(<div/>)
+	  success
     }
 
     "not stack overflow on Elem" in {
@@ -419,6 +422,7 @@ object CssBindHelpersSpec extends Specification  {
       "* -*" #> <a/>
 
       xf(<div/>)
+	  success
     }
 
     "substitute a String by id" in {
