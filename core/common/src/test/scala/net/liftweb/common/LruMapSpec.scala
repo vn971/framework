@@ -20,7 +20,7 @@ package common
 import org.specs2.mutable._
 import _root_.net.liftweb.common.Box._
 
-class LRUTest extends SpecificationWithJUnit {
+class LruMapSpec extends Specification {
   "LRU" should {
     "never grow beyond a certain size" in {
       val lru = new LRUMap[Int, Int](10)

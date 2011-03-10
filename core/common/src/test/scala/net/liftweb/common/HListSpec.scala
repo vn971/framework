@@ -20,7 +20,7 @@ package common
 import org.specs2.mutable._
 import _root_.net.liftweb.common.Box._
 
-class HListTest extends SpecificationWithJUnit {
+class HListSpec extends Specification {
   "An HList" should {
     "get types right" in {
       import HLists._

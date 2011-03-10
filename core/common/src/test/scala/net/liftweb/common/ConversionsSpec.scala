@@ -21,7 +21,7 @@ import org.specs2.mutable._
 import _root_.net.liftweb.common.Box._
 import _root_.scala.xml._
 
-class ConversionsTest extends SpecificationWithJUnit {
+class ConversionsSpec extends Specification {
   "A StringOrNodeSeq" should {
     "convert from a String" in {
       val sns: StringOrNodeSeq = "Hello"

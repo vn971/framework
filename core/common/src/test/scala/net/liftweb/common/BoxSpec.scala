@@ -20,7 +20,7 @@ package common
 import org.specs2.mutable._
 import _root_.net.liftweb.common.Box._
 
-class BoxSpecTest extends SpecificationWithJUnit {
+class BoxSpec extends Specification {
   "A Box" can {
     "be created from a Option. It is Empty if the option is None" in {
       Box(None) must be(Empty)

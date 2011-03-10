@@ -24,7 +24,7 @@ import org.specs2.mutable._
 /**
  * Systems under specification for Extraction Examples.
  */
-object ExtractionExamples extends Specification {
+object ExtractionExamplesSpec extends Specification {
   "Extraction Examples Specification".title
   
   implicit val formats = DefaultFormats

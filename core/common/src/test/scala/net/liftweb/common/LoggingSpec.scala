@@ -33,7 +33,7 @@ object MyTopObj extends Logger {
 /**
  * Test relies on logback being on the classpath, so no configuration necessary
  */
-class LoggingUnitTest extends SpecificationWithJUnit {
+class LoggingUnitSpec extends Specification {
   "Logging" can {
     "be mixed directly into object" in {
       object MyObj extends Logger {

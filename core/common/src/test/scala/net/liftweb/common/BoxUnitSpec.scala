@@ -26,7 +26,7 @@ import _root_.org.scalacheck.Arbitrary._
 import _root_.org.scalacheck.Prop.{forAll}
 
 
-class BoxUnitTest extends SpecificationWithJUnit with BoxGen with ScalaCheck {
+class BoxUnitSpec extends Specification with BoxGen with ScalaCheck {
   "A Box equals method" should {
     "return true with comparing two identical Box messages" in check { (c1: Box[Int], c2: Box[Int]) => (c1, c2) match {
         case (Empty, Empty) => c1 must_== c2

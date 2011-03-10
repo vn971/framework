@@ -23,7 +23,7 @@ import org.specs2.mutable._
 /**
  * System under specification for Diff Examples.
  */
-class DiffExamples extends Specification {
+object DiffExamples extends Specification {
   import MergeExamples.{scala1, scala2, lotto1, lotto2, mergedLottoResult}
 
   "Diff example" in {
