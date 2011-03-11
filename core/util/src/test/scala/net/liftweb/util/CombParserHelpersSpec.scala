@@ -25,12 +25,11 @@ import org.scalacheck.{Arbitrary, Gen, Prop}
 import scala.collection.immutable._
 import Gen._
 import Prop._
-
+object ParserHelpers extends CombParserHelpers with Parsers
 
 object CombParserHelpersSpec extends Specification with ScalaCheck {
  "CombParserHelpers Specification".title
 
-  object ParserHelpers extends CombParserHelpers with Parsers
   import ParserHelpers._
 
   "The parser helpers" should {
@@ -51,22 +50,22 @@ object CombParserHelpersSpec extends Specification with ScalaCheck {
       wsc('a') must beFalse
     }
     "provide a whitespace parser: white. Alias: wsc" in checkProp { 
-	  import WhiteStringGen._
-	  (s: String) => wsc(s) must beLike { case Success(_, _) => ok } 
-	}
+	    import WhiteStringGen._
+	    (s: String) => wsc(s) must beLike { case Success(_, _) => ok } 
+	  }
     "provide a whiteSpace parser always succeeding and discarding its result" in checkProp { 
-	  import StringWithWhiteGen._
-	  (s: String) => whiteSpace(s) must beLike { case Success(x, y) => x.toString must be_==("()") }
+	    import StringWithWhiteGen._
+	    (s: String) => whiteSpace(s) must beLike { case Success(x, y) => x.toString must be_==("()") }
     }
-    "provide an acceptCI parser to parse whatever string matching another string ignoring case" in checkProp { 
+    "provide an acceptCI parser to parse whatever string matching another string ignoring case" in check { 
       implicit def abcd = Arbitrary { AbcdStringGen.abcdString }
-	  (s: String, s2: String) => acceptCI(s).apply(s2) must beLike { case Success(x, y) => s2.toUpperCase must startWith(s.toUpperCase) }
+	    (s: String, s2: String) => acceptCI(s).apply(s2) must beLike { case Success(x, y) => s2.toUpperCase must startWith(s.toUpperCase); case _ => ok }
     }
     "provide a digit parser - returning a String" in check { (s: String) => 
-	  digit(s) must beLike { case Success(x, y) => s.toString must beMatching("\\p{Nd}"); case _ => ok }
+      digit(s) must beLike { case Success(x, y) => x.toString must beMatching("\\p{Nd}"); case _ => ok }
     }
     "provide an aNumber parser - returning an Int if succeeding" in check { (s: String) =>
-      aNumber(s) must beLike { case Success(x, y) => s.toString must beMatching("\\p{Nd}+"); case _ => ok }
+      aNumber(s) must beLike { case Success(x, y) => x.toString must beMatching("\\p{Nd}+"); case _ => ok }
     }
     "provide a slash parser" in {
       slash("/").get must_== '/'
@@ -83,7 +82,7 @@ object CombParserHelpersSpec extends Specification with ScalaCheck {
           result.get.toString must_== "()"
           result.next.atEnd must beTrue
       }
-	  success
+	    success
     }
     val parserA = elem("a", (c: Char) => c == 'a')
     val parserB = elem("b", (c: Char) => c == 'b')
@@ -93,9 +92,10 @@ object CombParserHelpersSpec extends Specification with ScalaCheck {
 	
     "provide a permute parser succeeding if any permutation of given parsers succeeds" in checkProp { 
       implicit def abcd = Arbitrary { AbcdStringGen.abcdString }
-	  (s: String) => shouldSucceed(permute(parserA, parserB, parserC, parserD)(s))
+	    (s: String) => shouldSucceed(permute(parserA, parserB, parserC, parserD)(s))
     }
-	val notEmpty = forAll(!new StringOps(_:String).isEmpty)
+	  
+    val notEmpty = forAll(!new StringOps(_:String).isEmpty)
     "provide a permuteAll parser succeeding if any permutation of the list given parsers, or a sublist of the given parsers succeeds" in checkProp {
       implicit def pick3Letters = AbcdStringGen.pickN(3, List("a", "b", "c"))
       notEmpty ==> { (s:String) => shouldSucceed(permuteAll(parserA, parserB, parserC, parserD)(s)) }
@@ -127,8 +127,7 @@ object WhiteStringGen {
       string <- listOfN(len, frequency((1, value(" ")), (1, value("\t")), (1, value("\r")), (1, value("\n"))))
     ) yield string.mkString("")
 
-  implicit def genWhiteString: Arbitrary[String] =
-    Arbitrary { genWhite }
+  implicit def genWhiteString: Arbitrary[String] = Arbitrary { genWhite }
 }
 
 
@@ -141,7 +140,6 @@ object StringWithWhiteGen {
       string <- listOfN(len, frequency((1, value("a")), (2, value("b")), (1, genWhite)))
     ) yield string.mkString("")
 
-  implicit def genString: Arbitrary[String] =
-    Arbitrary { genStringWithWhite }
+  implicit def genString: Arbitrary[String] = Arbitrary { genStringWithWhite }
 }
 

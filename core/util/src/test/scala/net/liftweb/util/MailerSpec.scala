@@ -19,7 +19,7 @@ package util
 
 import javax.mail.internet.{MimeMessage, MimeMultipart}
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import common._
 
@@ -27,7 +27,8 @@ import common._
 /**
  * Systems under specification for Lift Mailer.
  */
-object MailerSpec extends Specification("Mailer Specification") {
+object MailerSpec extends Specification {
+  "Mailer Specification".title
   
   MyMailer.touch()
 
@@ -59,8 +60,8 @@ object MailerSpec extends Specification("Mailer Specification") {
       }
 
       msg.getContent match {
-        case s: String => true must_== true
-        case x => fail("The simple message has content type of " + x.getClass.getName)
+        case s: String => success
+        case x => failure("The simple message has content type of " + x.getClass.getName)
       }
     }
 
@@ -76,8 +77,8 @@ object MailerSpec extends Specification("Mailer Specification") {
       }
 
       msg.getContent match {
-        case mp: MimeMultipart => true must_== true
-        case x => fail("The complex message has content type of " + x.getClass.getName)
+        case mp: MimeMultipart => success
+        case x => failure("The complex message has content type of " + x.getClass.getName)
       }
     }
 
@@ -92,8 +93,8 @@ object MailerSpec extends Specification("Mailer Specification") {
       }
 
       msg.getContent match {
-        case mp: MimeMultipart => true must_== true
-        case x => fail("The complex message has content type of " + x.getClass.getName)
+        case mp: MimeMultipart => success
+        case x => failure("The complex message has content type of " + x.getClass.getName)
       }
     }
   }

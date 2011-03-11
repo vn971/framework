@@ -19,10 +19,13 @@ package util
 
 import java.util.{Calendar, Date}
 
-import org.specs.{ScalaCheck, Specification}
+import org.specs2.mutable._
+import org.specs2.ScalaCheck
 import org.specs.util.Products._
 import org.scalacheck.Gen._
 import org.scalacheck.Prop._
+import org.scalacheck.Arbitrary
+import TimeAmountsGen.TimeAmounts
 
 import common._
 import TimeHelpers._
@@ -32,7 +35,8 @@ import TimeHelpers._
 /**
  * Systems under specification for TimeHelpers.
  */
-object TimeHelpersSpec extends Specification("TimeHelpers Specification") with ScalaCheck with TimeAmountsGen {
+object TimeHelpersSpec extends Specification with ScalaCheck {
+  "TimeHelpers Specification".title
 
   "A TimeSpan" can {
     "be created from a number of milliseconds" in {
@@ -75,7 +79,7 @@ object TimeHelpersSpec extends Specification("TimeHelpers Specification") with S
       3.seconds must_!= 2.seconds
     }
     "be compared to another object" in {
-      3.seconds must_!= "string"
+      3.seconds must not(be_===("string"))
     }
   }
 
@@ -93,19 +97,18 @@ object TimeHelpersSpec extends Specification("TimeHelpers Specification") with S
       3.seconds.ago.getTime must beCloseTo(new Date().getTime - 3.seconds.millis, 500L)
     }
     "have a toString method returning the relevant number of weeks, days, hours, minutes, seconds, millis" in {
-      val conversionIsOk = forAll(timeAmounts)((t: TimeAmounts) => { val (timeSpanToString, timeSpanAmounts) = t
-        timeSpanAmounts forall { case (amount, unit) =>
-          amount >= 1  &&
-          timeSpanToString.contains(amount.toString) || true }
-      })
-      val timeSpanStringIsPluralized = forAll(timeAmounts)((t: TimeAmounts) => { val (timeSpanToString, timeSpanAmounts) = t
+      implicit def times = TimeAmountsGen.timeAmounts
+      val conversionIsOk: PartialFunction[TimeAmounts, Boolean] = { case (timeSpanToString, timeSpanAmounts) =>
+        timeSpanAmounts.toList forall { case (amount, unit) => amount >= 1 && timeSpanToString.contains(amount.toString) || true }
+      }
+      val timeSpanStringIsPluralized: PartialFunction[TimeAmounts, Boolean] = { case (timeSpanToString, timeSpanAmounts) =>
         timeSpanAmounts forall { case (amount, unit) =>
                amount > 1  && timeSpanToString.contains(unit + "s") ||
                amount == 1 && timeSpanToString.contains(unit) ||
                amount == 0 && !timeSpanToString.contains(unit)
         }
-      })
-      conversionIsOk && timeSpanStringIsPluralized must pass
+      }
+      conversionIsOk.forAll && timeSpanStringIsPluralized.forAll
     }
   }
 
@@ -116,7 +119,7 @@ object TimeHelpersSpec extends Specification("TimeHelpers Specification") with S
     "provide a 'minutes' function transforming a number of minutes into millis" in {
       minutes(3) must_== 3 * 60 * 1000
     }
-    "provide a 'hours' function transforming a number of hours into milliss" in {
+    "provide a 'hours' function transforming a number of hours into millis" in {
       hours(3) must_== 3 * 60 * 60 * 1000
     }
     "provide a 'days' function transforming a number of days into millis" in {
@@ -177,8 +180,8 @@ object TimeHelpersSpec extends Specification("TimeHelpers Specification") with S
     }
     "provide a toDate returning a Full(date) from many kinds of objects" in {
       val d = now
-      (null, Nil, None, Failure("", Empty, Empty)).toList forall { toDate(_) must_== Empty }
-      (Full(d), Some(d), d :: d).toList forall { toDate(_) must_== Full(d) }
+      (toDate(_:Any) must be_==(Empty)).forall(Seq(null:Any, Nil, None, Failure("", Empty, Empty)))
+      (toDate(_:Any) must be_==(Full(d))).forall(Seq(Full(d), Some(d), d :: d))
       toDate(internetDateFormatter.format(d)).get.getTime.toLong must beCloseTo(d.getTime.toLong, 1000L)
     }
   }
@@ -200,22 +203,25 @@ object TimeHelpersSpec extends Specification("TimeHelpers Specification") with S
       hourFormat(today.noTime.getTime) must_== "00:00:00"
     }
   }
+  // deactivate this conflicting implicit conversion
+  override def intToRichLong(i: Int) = super.intToRichLong(i)
 }
 
 
-trait TimeAmountsGen {
+object TimeAmountsGen {
 
   type TimeAmounts = Tuple2[String, Tuple6[(Int, String), (Int, String), (Int, String), (Int, String), (Int, String), (Int, String)]]
-  val timeAmounts =
-    for {
-      w <- choose(0, 2)
-      d <- choose(0, 6)
-      h <- choose(0, 23)
-      m <- choose(0, 59)
-      s <- choose(0, 59)
-      ml <- choose(0, 999)
+  val timeAmounts = Arbitrary {
+      for {
+        w <- choose(0, 2)
+        d <- choose(0, 6)
+        h <- choose(0, 23)
+        m <- choose(0, 59)
+        s <- choose(0, 59)
+        ml <- choose(0, 999)
+      }
+      yield (TimeSpan(weeks(w) + days(d) + hours(h) + minutes(m) + seconds(s) + ml).toString,
+        ((w, "week"), (d, "day"), (h, "hour"), (m, "minute"), (s, "second"), (ml, "milli")))
     }
-    yield (TimeSpan(weeks(w) + days(d) + hours(h) + minutes(m) + seconds(s) + ml).toString,
-      ((w, "week"), (d, "day"), (h, "hour"), (m, "minute"), (s, "second"), (ml, "milli")))
 }
 

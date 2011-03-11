@@ -19,9 +19,7 @@ package util
 
 import xml.Elem
 
-import org.specs.Specification
-import org.specs.specification.PendingUntilFixed
-
+import org.specs2.mutable._
 import common._
 import Helpers._
 
@@ -29,7 +27,8 @@ import Helpers._
 /**
  * Systems under specification for Html5 Parser.
  */
-object Html5ParserSpec extends Specification("Html5Parser Specification") with PendingUntilFixed with Html5Parser with Html5Writer {
+object Html5ParserSpec extends Specification with Html5Parser with Html5Writer {
+  "Html5Parser Specification".title
 
   "Htm5 Writer" should {
     "Write &" in {
@@ -64,14 +63,10 @@ object Html5ParserSpec extends Specification("Html5Parser Specification") with P
 
         "fail to parse invalid page type3" in {
           val parsed = parse(page3)
-          parsed match {
-            case _: Failure => true must_== true
-            case _          => fail("succeeded parsing invalid page")
-          }
-        } pendingUntilFixed
+          parsed must beLike { case _: Failure => ok; case _ => ko }
+        }.pendingUntilFixed
 
-      case _ =>
-        fail("Failed loading test files") // TODO: Improve error message
+      case _ => failure("no html pages to parse") // TODO: Improve error message
     }
 
     "change <lift:head> to <head>" in {
@@ -80,7 +75,7 @@ object Html5ParserSpec extends Specification("Html5Parser Specification") with P
       heads.length must_== 1
       heads.text must_== "123"
       (heads(0).asInstanceOf[Elem].prefix == null) must_== true
-    } pendingUntilFixed
+    }.pendingUntilFixed
 
     "Parse stuff with lift: namespace" in {
       val parsed = parse("""<lift:surround with="dog"><div/></lift:surround>""")

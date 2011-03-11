@@ -17,14 +17,15 @@
 package net.liftweb
 package util
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 
 /**
  * Systems under specification for EnumWithDescription.
  */
-object EnumWithDescriptionSpec extends Specification("EnumWithDescription Specification") {
-
+object EnumWithDescriptionSpec extends Specification {
+  "EnumWithDescription Specification".title
+	
   "An enumWithDescription" should {
     "have a name" in {
       val t = Title2.valueOf("MR") == Some(Title2.mr)
@@ -36,15 +37,15 @@ object EnumWithDescriptionSpec extends Specification("EnumWithDescription Specif
     }
 
     "have a type 1" in {
-      Title1.mr mustEqual Title1.mr
+      Title1.mr must_== Title1.mr
     }
 
     "have a type 2" in {
-      Title1.mr mustEqual Title1.valueOf("MR").getOrElse(null)
+      Title1.mr must_== Title1.valueOf("MR").getOrElse(null)
     }
 
     "have a type 3" in {
-      Title1.dr mustEqual Title1.valueOf("DR").getOrElse(null)
+      Title1.dr must_== Title1.valueOf("DR").getOrElse(null)
     }
 
     "have a mr description" in {
@@ -52,11 +53,11 @@ object EnumWithDescriptionSpec extends Specification("EnumWithDescription Specif
     }
 
     "be able to be created from a string name" in {
-      Title1.valueOf("MRS").getOrElse(null) mustEqual Title1.mrs
+      Title1.valueOf("MRS").getOrElse(null) must_== Title1.mrs
     }
 
     "have a mrs description" in {
-      Title1.valueOf("MRS").getOrElse(null).description mustMatch "Mrs"
+      Title1.valueOf("MRS").getOrElse(null).description must be matching "Mrs"
     }
   }
 
