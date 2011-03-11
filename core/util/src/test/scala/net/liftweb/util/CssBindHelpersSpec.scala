@@ -173,7 +173,6 @@ object CssBindHelpersSpec extends Specification  {
       (ret \ "@id").text must_== "bar"
     }
 
-
     "Select a node and transform stuff deeply nested" in {
       val ret = ("#foo ^^" #> "hello" &
                  "span [id]" #> "bar")(<div><div><span id="foo"/></div></div>)
@@ -182,7 +181,6 @@ object CssBindHelpersSpec extends Specification  {
       ret.length must_== 1
       (ret \ "@id").text must_== "bar"
     }
-
 
     "Select a node and transform stuff deeply nested 2" in {
       val ret = ("#foo ^^" #> "hello" &
@@ -194,11 +192,8 @@ object CssBindHelpersSpec extends Specification  {
       (ret \ "@dog").text must_== "woof"
     }
 
-
-
     "substitute multiple Strings by id" in {
-      ("#foo" #> "hello" &
-     "#baz" #> "bye")(<b><div id="baz">Hello</div><span id="foo"/></b>) must ==/(<b>{Text("bye")}{Text("hello")}</b>)
+      ("#foo" #> "hello" & "#baz" #> "bye")(<b><div id="baz">Hello</div><span id="foo"/></b>).toString must_== <b>byehello</b>.toString
     }
 
     "bind href and None content" in {
@@ -289,17 +284,17 @@ object CssBindHelpersSpec extends Specification  {
 
     "substitute multiple Strings by id" in {
       (("#foo" replaceWith "hello") &
-       ("#baz" replaceWith "bye"))(<b><div id="baz">Hello</div><span id="foo"/></b>) must ==/ (<b>{Text("bye")}{Text("hello")}</b>)
+       ("#baz" replaceWith "bye"))(<b><div id="baz">Hello</div><span id="foo"/></b>).toString must_== <b>byehello</b>.toString
     }
 
     "substitute multiple Strings with a List by id" in {
       ("#foo" #> "hello" &
-     "#baz" #> List("bye", "bye"))(<b><div id="baz">Hello</div><span id="foo"/></b>) must ==/ (<b>{Text("bye")}{Text("bye")}{Text("hello")}</b>)
+     "#baz" #> List("bye", "bye"))(<b><div id="baz">Hello</div><span id="foo"/></b>).toString must_== <b>byebyehello</b>.toString
     }
 
     "substitute multiple Strings with a List by id" in {
       (("#foo" replaceWith "hello") &
-       ("#baz" replaceWith List("bye", "bye")))(<b><div id="baz">Hello</div><span id="foo"/></b>) must ==/ (<b>{Text("bye")}{Text("bye")}{Text("hello")}</b>)
+       ("#baz" replaceWith List("bye", "bye")))(<b><div id="baz">Hello</div><span id="foo"/></b>).toString must_== <b>byebyehello</b>.toString
     }
 
 
