@@ -22,7 +22,7 @@ import java.util.regex.Pattern
 
 import com.mongodb.{BasicDBObject, BasicDBObjectBuilder}
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import json.DefaultFormats
 
@@ -30,7 +30,8 @@ import json.DefaultFormats
 /**
  * System under specification for MongoDirect.
  */
-object MongoDirectSpec extends Specification("MongoDirect Specification") with MongoTestKit {
+object MongoDirectSpec extends MongoTestKit {
+  "MongoDirect Specification".title
 
   def date(s: String) = DefaultFormats.dateFormat.parse(s).get
 
@@ -73,7 +74,7 @@ object MongoDirectSpec extends Specification("MongoDirect Specification") with M
 
       // get the doc back from the db and compare
       coll.findOne.get("type") must_== "document"
-      coll.findOne.get("count") must_== 2
+      coll.findOne.get("count") must be_===(2)
 
       // modifier operations $inc, $set, $push...
       val o2 = new BasicDBObject
@@ -83,7 +84,7 @@ object MongoDirectSpec extends Specification("MongoDirect Specification") with M
 
       // get the doc back from the db and compare
       coll.findOne.get("type") must_== "docdb"
-      coll.findOne.get("count") must_== 3
+      coll.findOne.get("count") must be_===(3)
 
       if (!debug) {
         // delete it
@@ -94,7 +95,7 @@ object MongoDirectSpec extends Specification("MongoDirect Specification") with M
 
       // server-side eval
       val six = db.eval(" function() { return 3+3; } ")
-      six must_== 6
+      six must be_===(6)
     })
   }
 
@@ -129,7 +130,7 @@ object MongoDirectSpec extends Specification("MongoDirect Specification") with M
       val cur2 = coll.find(query)
 
       cur2.count must_== 1
-      cur2.next.get("i") must_== 71
+      cur2.next.get("i") must be_===(71)
 
       // get a set of documents with a query
       // e.g. find all where i > 50
@@ -158,7 +159,7 @@ object MongoDirectSpec extends Specification("MongoDirect Specification") with M
       var cntr6 = 0
       while(cur6.hasNext) {
         cntr6 += 1
-        cur6.next.get("i") must_== 60+cntr6
+        cur6.next.get("i") must be_===(60+cntr6)
       }
       cntr6 must_== 40
 
@@ -168,7 +169,7 @@ object MongoDirectSpec extends Specification("MongoDirect Specification") with M
       var cntr7 = 0
       while(cur7.hasNext) {
         cntr7 += 1
-        cur7.next.get("i") must_== 10+cntr7
+        cur7.next.get("i") must be_===(10+cntr7)
       }
       cntr7 must_== 20
 
@@ -177,7 +178,7 @@ object MongoDirectSpec extends Specification("MongoDirect Specification") with M
 
       var cntr8 = 100
       while(cur8.hasNext) {
-        cur8.next.get("i") must_== cntr8
+        cur8.next.get("i") must be_===(cntr8)
         cntr8 -= 1
       }
 
@@ -193,6 +194,7 @@ object MongoDirectSpec extends Specification("MongoDirect Specification") with M
         coll.drop
       }
     })
+	success
   }
 
   "Mongo useSession example" in {
@@ -240,16 +242,16 @@ object MongoDirectSpec extends Specification("MongoDirect Specification") with M
       o2.put("$inc", new BasicDBObject("count", 1)) // increment count by 1
       //o2.put("$set", new BasicDBObject("type", "docdb")) // set type
       coll.update(qry, o2, false, false)
-      db.getLastError.get("updatedExisting") must_== true
+      db.getLastError.get("updatedExisting") must be_===(true)
       /* The update method only updates one document. see:
       http://jira.mongodb.org/browse/SERVER-268
       */
-      db.getLastError.get("n") must_== 1
+      db.getLastError.get("n") must be_===(1)
 
       // this update query won't find any docs to update
       coll.update(new BasicDBObject("name", "None"), o2, false, false)
-      db.getLastError.get("updatedExisting") must_== false
-      db.getLastError.get("n") must_== 0
+      db.getLastError.get("updatedExisting") must be_===(false)
+      db.getLastError.get("n") must be_===(0)
 
       // regex query example
       val key = "name"
@@ -266,11 +268,12 @@ object MongoDirectSpec extends Specification("MongoDirect Specification") with M
       if (!debug) {
         // delete them
         coll.remove(new BasicDBObject("type", "db"))
-        db.getLastError.get("n") must_== 2
+        db.getLastError.get("n") must be_===(2)
         coll.find.count must_== 0
         coll.drop
       }
     })
+	success
   }
 
   "UUID Example" in {

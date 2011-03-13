@@ -42,7 +42,7 @@ class HListSpec extends Specification {
 
       // result in a failure
       x match {
-        case Left(_) => true must_== true
+        case Left(_) => success
       }
     }
     "build a box with all Full must match" in {
@@ -60,7 +60,7 @@ class HListSpec extends Specification {
           val onei: Int = one
           val lstl: List[Int] = lst
 
-          true must_== true
+          success
         }
       }
     }

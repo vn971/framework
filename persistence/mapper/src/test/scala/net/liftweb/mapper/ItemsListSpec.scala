@@ -17,7 +17,7 @@
 package net.liftweb
 package mapper
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import common._
 import json._
@@ -29,7 +29,8 @@ import view._
 /**
  * Systems under specification for ItemsList.
  */
-object ItemsListSpec extends Specification("ItemsList Specification") {
+object ItemsListSpec extends Specification {
+  "ItemsList Specification".title
 
   val provider = DbProviders.H2MemoryProvider
 

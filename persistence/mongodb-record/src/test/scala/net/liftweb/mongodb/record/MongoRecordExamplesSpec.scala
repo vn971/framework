@@ -28,7 +28,7 @@ import net.liftweb.json.JsonAST.JObject
 import net.liftweb.record.field._
 import net.liftweb.util.TimeHelpers._
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import com.mongodb._
 import org.bson.types.ObjectId
@@ -236,7 +236,9 @@ package mongotestrecords {
 /**
  * Systems under specification for MongoRecordExamples.
  */
-object MongoRecordExamplesSpec extends Specification("MongoRecordExamples Specification") with MongoTestKit {
+object MongoRecordExamplesSpec extends MongoTestKit {
+  "MongoRecordExamples Specification".title
+  
   import mongotestrecords._
   import net.liftweb.util.TimeHelpers._
 
@@ -300,6 +302,7 @@ object MongoRecordExamplesSpec extends Specification("MongoRecordExamples Specif
     }
 
     if (!debug) TstRecord.drop
+	success
   }
 
   "Ref example" in {
@@ -452,6 +455,7 @@ object MongoRecordExamplesSpec extends Specification("MongoRecordExamples Specif
       RefDoc.drop
       RefStringDoc.drop
     }
+	success
   }
 
   "List example" in {
@@ -508,6 +512,7 @@ object MongoRecordExamplesSpec extends Specification("MongoRecordExamples Specif
       ListDoc.drop
       RefDoc.drop
     }
+	success
   }
 
   "Map Example" in {
@@ -522,6 +527,7 @@ object MongoRecordExamplesSpec extends Specification("MongoRecordExamples Specif
     md1.delete_!
 
     if (!debug) MapDoc.drop
+    success
   }
 
   "Optional Example" in {
@@ -549,6 +555,7 @@ object MongoRecordExamplesSpec extends Specification("MongoRecordExamples Specif
     }
 
     if (!debug) OptionalDoc.drop
+	success
   }
 
   "Strict Example" in {
@@ -567,5 +574,6 @@ object MongoRecordExamplesSpec extends Specification("MongoRecordExamples Specif
     sd2.save(true) must_== sd2
 
     if (!debug) StrictDoc.drop
+	success
   }
 }

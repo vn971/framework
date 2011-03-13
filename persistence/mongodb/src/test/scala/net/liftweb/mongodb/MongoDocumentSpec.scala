@@ -17,7 +17,7 @@
 package net.liftweb
 package mongodb
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import common._
 import json.ext.JsonBoxSerializer
@@ -75,8 +75,9 @@ package mongodocumentspecs {
 /**
  * System under specification for MongoDocument
  */
-object MongoDocumentSpec extends Specification("MongoDocument Specification") with MongoTestKit {
-
+object MongoDocumentSpec extends MongoTestKit {
+  "MongoDocument Specification".title
+  
   "MongoDocument" should {
 
     "handle primitives" in {

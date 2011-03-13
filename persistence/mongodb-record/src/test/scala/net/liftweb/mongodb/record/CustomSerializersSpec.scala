@@ -28,7 +28,7 @@ import util.Helpers._
 import java.util.{Calendar, Date}
 
 import org.bson.types.ObjectId
-import org.specs.Specification
+import org.specs2.mutable._
 
 import net.liftweb.record.field._
 
@@ -133,8 +133,8 @@ package customserializersspecs {
 /**
  * Systems under specification for CustomSerializers.
  */
-object CustomSerializersSpec extends Specification("CustomSerializers Specification") with MongoTestKit {
-
+object CustomSerializersSpec extends MongoTestKit {
+  "CustomSerializers Specification".title
   import customserializersspecs._
 
   "CustomSerializers" should {
@@ -157,20 +157,20 @@ object CustomSerializersSpec extends Specification("CustomSerializers Specificat
 
       // retrieve it and compare
       val mother2 = Person.find(mother.id)
-      mother2 must notBeEmpty
+      mother2 must not be empty
       mother2 foreach { m =>
-        m.children.value mustEqual mother.children.value
-        m.firstBorn.value mustEqual mother.firstBorn.value
+        m.children.value must_== mother.children.value
+        m.firstBorn.value must_== mother.firstBorn.value
       }
 
       // check the conversion functions
       /*
-      mother.children.asJs mustEqual JsArray(
+      mother.children.asJs must_== JsArray(
         JsObj(("name", Str("Jack")), ("birthdate", Str("2010-11-02T23:58:00.000Z"))),
         JsObj(("name", Str("Jill")), ("birthdate", Str("2010-11-03T00:08:00.000Z")))
       )*/
 
-      mother.children.asJValue mustEqual JArray(List(
+      mother.children.asJValue must_== JArray(List(
         JObject(List(
           JField("name", JString("Jack")),
           JField("birthdate", JString("2010-11-02T23:58:00.000Z"))
@@ -181,10 +181,10 @@ object CustomSerializersSpec extends Specification("CustomSerializers Specificat
         ))
       mother.children.toForm must beEmpty
       /*
-      mother.firstBorn.asJs mustEqual
+      mother.firstBorn.asJs must_==
         JsObj(("name", Str("Jack")), ("birthdate", Str("2010-11-02T23:58:00.000Z")))
         */
-      mother.firstBorn.asJValue mustEqual
+      mother.firstBorn.asJValue must_==
         JObject(List(
           JField("name", JString("Jack")),
           JField("birthdate", JString("2010-11-02T23:58:00.000Z"))
@@ -211,20 +211,20 @@ object CustomSerializersSpec extends Specification("CustomSerializers Specificat
 
       // retrieve it and compare
       val mother2 = Person2.find(mother.id)
-      mother2 must notBeEmpty
+      mother2 must not be empty
       mother2 foreach { m =>
-        m.children.value mustEqual mother.children.value
-        m.firstBorn.value mustEqual mother.firstBorn.value
+        m.children.value must_== mother.children.value
+        m.firstBorn.value must_== mother.firstBorn.value
       }
 
       // check the conversion functions
       /*
-      mother.children.asJs mustEqual JsArray(
+      mother.children.asJs must_== JsArray(
         JsObj(("name", Str("Jack")), ("birthdate", JsObj(("$dt", Str("2010-11-02T23:58:00.000Z"))))),
         JsObj(("name", Str("Jill")), ("birthdate", JsObj(("$dt", Str("2010-11-03T00:08:00.000Z")))))
       )*/
 
-      mother.children.asJValue mustEqual JArray(List(
+      mother.children.asJValue must_== JArray(List(
         JObject(List(
           JField("name", JString("Jack")),
           JField("birthdate", JObject(List(JField("$dt", JString("2010-11-02T23:58:00.000Z")))))
@@ -237,11 +237,11 @@ object CustomSerializersSpec extends Specification("CustomSerializers Specificat
       mother.children.toForm must beEmpty
 
       /*
-      mother.firstBorn.asJs mustEqual
+      mother.firstBorn.asJs must_==
         JsObj(("name", Str("Jack")), ("birthdate", JsObj(("$dt", Str("2010-11-02T23:58:00.000Z")))))
         */
 
-      mother.firstBorn.asJValue mustEqual
+      mother.firstBorn.asJValue must_==
         JObject(List(
           JField("name", JString("Jack")),
           JField("birthdate", JObject(List(JField("$dt", JString("2010-11-02T23:58:00.000Z")))))
@@ -267,27 +267,27 @@ object CustomSerializersSpec extends Specification("CustomSerializers Specificat
 
       // retrieve it and compare
       val nfl2 = League.find(nfl.id)
-      nfl2 must notBeEmpty
+      nfl2 must not be empty
       nfl2 foreach { l =>
-        l.teams.value mustEqual nfl.teams.value
-        l.champion.value mustEqual nfl.champion.value
+        l.teams.value must_== nfl.teams.value
+        l.champion.value must_== nfl.champion.value
       }
 
       // find a player
       val vqb = Player.find(vikes.qb)
-      vqb must notBeEmpty
+      vqb must not be empty
       vqb foreach { p =>
-        p.name.value mustEqual "Brett Favre"
+        p.name.value must_== "Brett Favre"
       }
 
       // check the conversion functions
-      // nfl._id.asJs mustEqual Str(nfl._id.value.toString)
-      nfl._id.asJValue mustEqual JString(nfl._id.value.toString)
+      // nfl._id.asJs must_== Str(nfl._id.value.toString)
+      nfl._id.asJValue must_== JString(nfl._id.value.toString)
       val session = new LiftSession("", randomString(20), Empty)
       val formPattern = "<input name=\".*\" type=\"text\" tabindex=\"1\" value=\""+nfl._id.value.toString+"\" id=\"_id_id_field\"></input>"
       S.initIfUninitted(session) {
         val form = nfl._id.toForm
-        form must notBeEmpty
+        form must not be empty
         form foreach { f =>
           f.toString must beMatching(formPattern)
         }
@@ -296,19 +296,19 @@ object CustomSerializersSpec extends Specification("CustomSerializers Specificat
       // check the setFrom* functions
       val nflid = ObjectId.get
       nfl._id.setFromString(nflid.toString)
-      nfl._id.value mustEqual nflid
+      nfl._id.value must_== nflid
 
       nfl._id.setFromString("garbage")
-      nfl._id.valueBox mustEqual Failure("Invalid ObjectId string: garbage")
+      nfl._id.valueBox must_== Failure("Invalid ObjectId string: garbage")
 
       nfl._id.setFromJValue(JString(nflid.toString))
-      nfl._id.value mustEqual nflid
+      nfl._id.value must_== nflid
 
       nfl._id.setFromAny(nflid)
-      nfl._id.value mustEqual nflid
+      nfl._id.value must_== nflid
 
       nfl._id.setFromAny(nflid.toString)
-      nfl._id.value mustEqual nflid
+      nfl._id.value must_== nflid
 
     }
 
@@ -330,27 +330,27 @@ object CustomSerializersSpec extends Specification("CustomSerializers Specificat
 
       // retrieve it and compare
       val nfl2 = League2.find(nfl.id.toString)
-      nfl2 must notBeEmpty
+      nfl2 must not be empty
       nfl2 foreach { l =>
-        l.teams.value mustEqual nfl.teams.value
-        l.champion.value mustEqual nfl.champion.value
+        l.teams.value must_== nfl.teams.value
+        l.champion.value must_== nfl.champion.value
       }
 
       // find a player
       val vqb = Player.find(vikes.qb)
-      vqb must notBeEmpty
+      vqb must not be empty
       vqb foreach { p =>
-        p.name.value mustEqual "Brett Favre"
+        p.name.value must_== "Brett Favre"
       }
 
       // check the conversion functions
-      // nfl._id.asJs mustEqual JsObj(("$oid", Str(nfl._id.value.toString)))
-      nfl._id.asJValue mustEqual JObject(List(JField("$oid", JString(nfl._id.value.toString))))
+      // nfl._id.asJs must_== JsObj(("$oid", Str(nfl._id.value.toString)))
+      nfl._id.asJValue must_== JObject(List(JField("$oid", JString(nfl._id.value.toString))))
       val session = new LiftSession("", randomString(20), Empty)
       val formPattern = "<input name=\".*\" type=\"text\" tabindex=\"1\" value=\""+nfl._id.value.toString+"\" id=\"_id_id_field\"></input>"
       S.initIfUninitted(session) {
         val form = nfl._id.toForm
-        form must notBeEmpty
+        form must not be empty
         form foreach { f =>
           f.toString must beMatching(formPattern)
         }
@@ -359,19 +359,19 @@ object CustomSerializersSpec extends Specification("CustomSerializers Specificat
       // check the setFrom* functions
       val nflid = ObjectId.get
       nfl._id.setFromString(nflid.toString)
-      nfl._id.value mustEqual nflid
+      nfl._id.value must_== nflid
 
       nfl._id.setFromString("garbage")
-      nfl._id.valueBox mustEqual Failure("Invalid ObjectId string: garbage")
+      nfl._id.valueBox must_== Failure("Invalid ObjectId string: garbage")
 
       nfl._id.setFromJValue(JObject(List(JField("$oid", JString(nflid.toString)))))
-      nfl._id.value mustEqual nflid
+      nfl._id.value must_== nflid
 
       nfl._id.setFromAny(nflid)
-      nfl._id.value mustEqual nflid
+      nfl._id.value must_== nflid
 
       nfl._id.setFromAny(nflid.toString)
-      nfl._id.value mustEqual nflid
+      nfl._id.value must_== nflid
     }
   }
 }

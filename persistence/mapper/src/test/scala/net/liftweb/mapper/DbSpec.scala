@@ -17,7 +17,7 @@
 package net.liftweb
 package mapper
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import common._
 import util._
@@ -27,7 +27,9 @@ import http.{S, LiftSession}
 /**
  * Systems under specification for DB.
  */
-object DbSpec extends Specification("DB Specification") {
+object DbSpec extends Specification {
+  "DB Specification".title
+  
   val provider = DbProviders.H2MemoryProvider
   val logF = Schemifier.infoF _
   
@@ -52,7 +54,7 @@ object DbSpec extends Specification("DB Specification") {
         S.queryLog.size must_== 1
         r
       }
-      statements.size must_==1
+      statements.size must_== 1
       elwood.firstName.is must_== "Elwood"
     }
   }

@@ -18,7 +18,7 @@ import java.net.ConnectException
 
 import dispatch.{Http, StatusCode}
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import common._
 import json._
@@ -49,7 +49,9 @@ package couchtestrecords {
 /**
  * Systems under specification for CouchRecord.
  */
-object CouchRecordSpec extends Specification("CouchRecord Specification") {
+object CouchRecordSpec extends Specification {
+  "CouchRecord Specification".title
+  
   import CouchDB.defaultDatabase
   import couchtestrecords._
   
@@ -61,7 +63,7 @@ object CouchRecordSpec extends Specification("CouchRecord Specification") {
 
   def setup = {
     val database = new Database("test")
-    (try { Http(database delete) } catch { case StatusCode(_, _) => () }) must not(throwAnException[ConnectException]).orSkipExample
+    (try { Http(database delete) } catch { case StatusCode(_, _) => () }) must not(throwA[ConnectException]).orSkip
     Http(database create)
     Http(database.design("test") put design)
     defaultDatabase = database
@@ -91,7 +93,7 @@ object CouchRecordSpec extends Specification("CouchRecord Specification") {
     "give emtpy box on get when nonexistant" in {
       setup must_== ()
  
-      Person.fetch("testdoc") must verify (!_.isDefined)
+      Person.fetch("testdoc").isDefined must beFalse
     }
 
     "be insertable" in {
@@ -102,8 +104,8 @@ object CouchRecordSpec extends Specification("CouchRecord Specification") {
 
       assertEqualPerson(newRec, testRec1)
       newRec.saved_? must_== true
-      newRec.id.valueBox must verify (_.isDefined)
-      newRec.rev.valueBox must verify (_.isDefined)
+      newRec.id.valueBox.isDefined must beTrue
+      newRec.rev.valueBox.isDefined must beTrue
 
       val Full(foundRec) = Person.fetch(newRec.id.valueBox.open_!)
       assertEqualPerson(foundRec, testRec1)
@@ -126,17 +128,17 @@ object CouchRecordSpec extends Specification("CouchRecord Specification") {
       val newRec = testRec1
       newRec.save
 
-      newRec.id.valueBox must verify(_.isDefined)
+      newRec.id.valueBox.isDefined must beTrue
       val id = newRec.id.valueBox.open_!
 
-      Person.fetch(id) must verify(_.isDefined)
-      newRec.delete_! must verify(_.isDefined)
-      Person.fetch(id) must not(verify(_.isDefined))
-      newRec.delete_! must not(verify(_.isDefined))
+      Person.fetch(id).isDefined must beTrue
+      newRec.delete_!.isDefined must beTrue
+      Person.fetch(id).isDefined must beFalse
+      newRec.delete_!.isDefined must beFalse
 
       newRec.save
       Http(defaultDatabase(newRec.id.valueBox.open_!) @@ newRec.rev.valueBox.open_! delete)
-      newRec.delete_! must not(verify(_.isDefined))
+      newRec.delete_!.isDefined must beFalse
     }
 
     "be fetchable in bulk" in {
@@ -154,7 +156,7 @@ object CouchRecordSpec extends Specification("CouchRecord Specification") {
       val expectedRows = newRec1::newRec3::Nil
 
       Person.fetchMany(newRec1.id.valueBox.open_!, newRec3.id.valueBox.open_!).map(_.toList) must beLike {
-        case Full(foundRows) => assertEqualRows(foundRows, expectedRows); true
+        case Full(foundRows) => assertEqualRows(foundRows, expectedRows); ok
       }
     }
 
@@ -174,7 +176,7 @@ object CouchRecordSpec extends Specification("CouchRecord Specification") {
       val expectedRows = newRec2::Nil
 
       Person.queryView("test", "people_by_age", _.key(JInt(30))) must beLike {
-        case Full(foundRows) => assertEqualRows(foundRows, expectedRows); true
+        case Full(foundRows) => assertEqualRows(foundRows, expectedRows); ok
       }
     }
 
@@ -192,7 +194,7 @@ object CouchRecordSpec extends Specification("CouchRecord Specification") {
       val expectedRows = newRec1::newRec2::Nil
 
       Person.queryViewDocs("test", "oldest", _.dontReduce) must beLike {
-        case Full(foundRows) => assertEqualRows(foundRows, expectedRows); true
+        case Full(foundRows) => assertEqualRows(foundRows, expectedRows); ok
       }
     }
 
@@ -210,14 +212,14 @@ object CouchRecordSpec extends Specification("CouchRecord Specification") {
       val expectedRows = newRec1::newRec2::Nil
 
       Person.queryViewDocs("test", "people_by_age", identity) must beLike {
-        case Full(foundRows) => assertEqualRows(foundRows, expectedRows); true
+        case Full(foundRows) => assertEqualRows(foundRows, expectedRows); ok
       }
     }
 
     "support multiple databases for fetching" in {
       setup
       val database2 = new Database("test2")
-      (try { Http(database2 delete) } catch { case StatusCode(_, _) => () }) must not(throwAnException[ConnectException]).orSkipExample
+      (try { Http(database2 delete) } catch { case StatusCode(_, _) => () }) must not(throwA[ConnectException]).orSkip
       Http(database2 create)
 
       val newRec = testRec1
@@ -227,19 +229,19 @@ object CouchRecordSpec extends Specification("CouchRecord Specification") {
       newRec.saved_? must_== true
 
       val foundRecBox = Person.fetchFrom(database2, newRec.id.valueBox.open_!)
-      foundRecBox must verify(_.isDefined)
+      foundRecBox.isDefined must beTrue
       val Full(foundRec) = foundRecBox
       assertEqualPerson(foundRec, testRec1)
       foundRec.id.valueBox must_== newRec.id.valueBox
       foundRec.rev.valueBox must_== newRec.rev.valueBox
       
-      Person.fetch(newRec.id.valueBox.open_!) must not(verify(_.isDefined))
+      Person.fetch(newRec.id.valueBox.open_!).isDefined must beFalse
     }
 
     "support multiple databases for fetching in bulk" in {
       setup
       val database2 = new Database("test2")
-      (try { Http(database2 delete) } catch { case StatusCode(_, _) => () }) must not(throwAnException[ConnectException]).orSkipExample
+      (try { Http(database2 delete) } catch { case StatusCode(_, _) => () }) must not(throwA[ConnectException]).orSkip
       Http(database2 create)
 
       val newRec1, newRec2, newRec3 = testRec1
@@ -257,16 +259,16 @@ object CouchRecordSpec extends Specification("CouchRecord Specification") {
       val expectedRows = newRec1::newRec3::Nil
 
       Person.fetchManyFrom(database2, newRec1.id.valueBox.open_!, newRec3.id.valueBox.open_!).map(_.toList) must beLike {
-        case Full(foundRows) => assertEqualRows(foundRows, expectedRows); true
+        case Full(foundRows) => assertEqualRows(foundRows, expectedRows); ok
       }
 
-      Person.fetchMany(newRec1.id.valueBox.open_!, newRec3.id.valueBox.open_!) must beLike { case Full(seq) if seq.isEmpty => true }
+      Person.fetchMany(newRec1.id.valueBox.open_!, newRec3.id.valueBox.open_!) must beLike { case Full(seq) if seq.isEmpty => ok }
     }
 
     "support multiple databases for queries" in {
       setup
       val database2 = new Database("test2")
-      (try { Http(database2 delete) } catch { case StatusCode(_, _) => () }) must not(throwAnException[ConnectException]).orSkipExample
+      (try { Http(database2 delete) } catch { case StatusCode(_, _) => () }) must not(throwA[ConnectException]).orSkip
       Http(database2 create)
       Http(database2.design("test") put design)
 
@@ -286,16 +288,16 @@ object CouchRecordSpec extends Specification("CouchRecord Specification") {
       val expectedRows = newRec2::Nil
 
       Person.queryViewFrom(database2, "test", "people_by_age", _.key(JInt(30))) must beLike {
-        case Full(foundRows) => assertEqualRows(foundRows, expectedRows); true
+        case Full(foundRows) => assertEqualRows(foundRows, expectedRows); ok
       }
 
-      Person.queryView("test", "people_by_age", _.key(JInt(30))) must beLike { case Full(seq) if seq.isEmpty => true }
+      Person.queryView("test", "people_by_age", _.key(JInt(30))) must beLike { case Full(seq) if seq.isEmpty => ok }
     }
 
     "support multiple databases for queries returning documents" in {
       setup
       val database2 = new Database("test2")
-      (try { Http(database2 delete) } catch { case StatusCode(_, _) => () }) must not(throwAnException[ConnectException]).orSkipExample
+      (try { Http(database2 delete) } catch { case StatusCode(_, _) => () }) must not(throwA[ConnectException]).orSkip
       Http(database2 create)
       Http(database2.design("test") put design)
 
@@ -312,10 +314,10 @@ object CouchRecordSpec extends Specification("CouchRecord Specification") {
       val expectedRows = newRec1::newRec2::Nil
 
       Person.queryViewDocsFrom(database2, "test", "oldest", _.dontReduce) must beLike {
-        case Full(foundRows) => assertEqualRows(foundRows, expectedRows); true
+        case Full(foundRows) => assertEqualRows(foundRows, expectedRows); ok
       }
 
-      Person.queryViewDocs("test", "oldest", _.dontReduce) must beLike { case Full(seq) if seq.isEmpty => true }
+      Person.queryViewDocs("test", "oldest", _.dontReduce) must beLike { case Full(seq) if seq.isEmpty => ok }
     }
   }
 }

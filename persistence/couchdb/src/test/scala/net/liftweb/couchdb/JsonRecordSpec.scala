@@ -17,7 +17,7 @@
 package net.liftweb
 package couchdb
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import common._
 import json._
@@ -61,7 +61,9 @@ package jsontestrecords {
 /**
  * Systems under specification for JsonRecord.
  */
-object JsonRecordSpec extends Specification("JsonRecord Specification") {
+object JsonRecordSpec extends Specification {
+  "JsonRecord Specification".title
+  
   import jsontestrecords._
 
   def assertEqualPerson(a: Person, b: Person) = {
@@ -75,6 +77,7 @@ object JsonRecordSpec extends Specification("JsonRecord Specification") {
         aa.city.valueBox must_== aa.city.valueBox
         aa.street.valueBox must_== aa.street.valueBox
       }
+	success
   }
 
   "A JSON record" should {
@@ -97,14 +100,14 @@ object JsonRecordSpec extends Specification("JsonRecord Specification") {
     
     "decode basic records correctly" in {
       val recBox = Person.fromJValue(testDoc1)
-      recBox must verify (_.isDefined)
+      recBox.isDefined must beTrue
       val Full(rec) = recBox
       assertEqualPerson(rec, testRec1)
     }
 
     "preserve extra fields from JSON" in {
       val recBox = Person.fromJValue(testDoc2)
-      recBox must verify (_.isDefined)
+      recBox.isDefined must beTrue
       val Full(rec) = recBox
       rec.additionalJFields must_== List(JField("extra1", JString("value1")), 
                                          JField("extra2", JString("value2")))
@@ -115,23 +118,23 @@ object JsonRecordSpec extends Specification("JsonRecord Specification") {
 
     "support unset optional fields" in {
       val recBox = Person.fromJValue(testDoc1)
-      recBox must verify (_.isDefined)
+      recBox.isDefined must beTrue
       val Full(rec) = recBox
 
-      rec.favoriteColor.value must not (verify (_.isDefined))
+      rec.favoriteColor.value.isDefined must beFalse
     }
 
     "support set optional fields" in {
       val recBox = Person.fromJValue(testDoc2)
-      recBox must verify (_.isDefined)
+      recBox.isDefined must beTrue
       val Full(rec) = recBox
 
-      rec.favoriteColor.value must_== Some("blue")
+      rec.favoriteColor.value must beSome("blue")
     }
 
     "support set subRecord field" in {
       val recBox = Person.fromJValue(testDoc4)
-      recBox must verify (_.isDefined)
+      recBox.isDefined must beTrue
       val Full(rec) = recBox
 
       rec.address.valueBox.flatMap(_.street.valueBox) must_== Full("my street")
@@ -146,22 +149,22 @@ object JsonRecordSpec extends Specification("JsonRecord Specification") {
 
     "honor overrideIgnoreExtraJSONFields == true" in {
       val recBox = JSONMetaRecord.overrideIgnoreExtraJSONFields.doWith(true) { Person.fromJValue(testDoc2) }
-      recBox must verify (_.isDefined)
+      recBox.isDefined must beTrue
     }
 
     "honor overrideIgnoreExtraJSONFields == false" in {
       val recBox = JSONMetaRecord.overrideIgnoreExtraJSONFields.doWith(false) { Person.fromJValue(testDoc2) }
-      recBox must not (verify (_.isDefined))
+      recBox.isDefined must beFalse
     }
 
     "honor overrideNeedAllJSONFields == true" in {
       val recBox = JSONMetaRecord.overrideNeedAllJSONFields.doWith(true) { Person.fromJValue(testDoc3) }
-      recBox must not (verify (_.isDefined))
+      recBox.isDefined must beFalse
     }
 
     "honor overrideNeedAllJSONFields == false" in {
       val recBox = JSONMetaRecord.overrideNeedAllJSONFields.doWith(false) { Person.fromJValue(testDoc3) }
-      recBox must verify (_.isDefined)
+      recBox.isDefined must beTrue
     }
   }
 }

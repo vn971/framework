@@ -19,8 +19,9 @@ package mapper
 
 import java.util.Locale
 
-import org.specs.Specification
-
+import org.specs2.matcher.MustThrownMatchers
+import org.specs2.mutable._
+import org.specs2.execute.Success
 import common._
 import json._
 import util._
@@ -32,9 +33,9 @@ import http.provider.HTTPRequest
 /**
  * Systems under specification for Mapper.
  */
-object MapperSpec extends Specification("Mapper Specification") {
-
-  val doLog = false
+object MapperSpec extends Specification {
+  "Mapper Specification".title
+  sequential
 
   //  def providers =
   //    if (false || Props.getBool("lift.fasttest", false))
@@ -91,28 +92,11 @@ object MapperSpec extends Specification("Mapper Specification") {
   // Snake connection doesn't create FK constraints
   MapperRules.createForeignKeys_? = c => c.jndiName != "snake"
 
-  def cleanup() {
-    Schemifier.destroyTables_!!(DefaultConnectionIdentifier, if (doLog) Schemifier.infoF _ else ignoreLogger _, SampleTag, SampleModel, Dog, Mixer, Dog2, User, TstItem, Thing)
-    Schemifier.destroyTables_!!(DbProviders.SnakeConnectionIdentifier, if (doLog) Schemifier.infoF _ else ignoreLogger _, SampleTagSnake, SampleModelSnake)
-    Schemifier.schemify(true, if (doLog) Schemifier.infoF _ else ignoreLogger _, DefaultConnectionIdentifier, SampleModel, SampleTag, User, Dog, Mixer, Dog2, TstItem, Thing)
-    Schemifier.schemify(true, if (doLog) Schemifier.infoF _ else ignoreLogger _, DbProviders.SnakeConnectionIdentifier, SampleModelSnake, SampleTagSnake)
-  }
-
   providers.foreach(provider => {
 
     ("Mapper for " + provider.name) should {
 
-      doBefore {
-        (try {
-          provider.setupDB
-          cleanup
-        } catch {
-          case e if !provider.required_? => skip("Provider %s not available: %s".format(provider, e))
-        }) must not(throwAnException[Exception]).orSkipExample
-      }
-      setSequential()
-
-      "schemify" in {
+      "schemify" in new db(provider) {
         val elwood = SampleModel.find(By(SampleModel.firstName, "Elwood")).open_!
         val madeline = SampleModel.find(By(SampleModel.firstName, "Madeline")).open_!
         val archer = SampleModel.find(By(SampleModel.firstName, "Archer")).open_!
@@ -132,13 +116,13 @@ object MapperSpec extends Specification("Mapper Specification") {
         elwood.id.is must be_<(madeline.id.is).eventually
       }
 
-      "non-snake connection should lower case default table & column names" in {
+      "non-snake connection should lower case default table & column names" in new db(provider) {
         SampleModel.firstName.name must_== "firstName"
         SampleModel.firstName.dbColumnName must_== "firstname"
         SampleModel.dbTableName must_== "samplemodel"
       }
 
-      "should use displayNameCalculator for displayName" in {
+      "should use displayNameCalculator for displayName" in new db(provider) {
         val localeCalculator = LiftRules.localeCalculator
         SampleModel.firstName.displayName must_== "DEFAULT:SampleModel.firstName"
 
@@ -149,42 +133,42 @@ object MapperSpec extends Specification("Mapper Specification") {
         LiftRules.localeCalculator = localeCalculator
       }
 
-      "snake connection should snakify default table & column names" in {
+      "snake connection should snakify default table & column names" in new db(provider) {
         SampleModelSnake.firstName.name must_== "firstName"
         SampleModelSnake.firstName.dbColumnName must_== "first_name"
         SampleModelSnake.dbTableName must_== "sample_model_snake"
       }
 
-      "user defined names are not changed" in {
+      "user defined names are not changed" in new db(provider) {
         SampleTag.extraColumn.name must_== "extraColumn"
         SampleTag.extraColumn.dbColumnName must_== "AnExtraColumn"
         Mixer.dbTableName must_== "MIXME_UP"
       }
 
-      "basic JSON encoding/decoding works" in {
-        val m = SampleModel.findAll().head
-        val json = m.encodeAsJson()
+      "basic JSON encoding/decoding works" in new db(provider) {
+        val mo = SampleModel.findAll().head
+        val json = mo.encodeAsJson()
         val rebuilt = SampleModel.buildFromJson(json)
-        m must_== rebuilt
+        mo must_== rebuilt
       }
 
-      "basic JSON encoding/decoding works with snake_case" in {
-        val m = SampleModelSnake.findAll().head
-        val json = m.encodeAsJson()
+      "basic JSON encoding/decoding works with snake_case" in new db(provider) {
+        val mo = SampleModelSnake.findAll().head
+        val json = mo.encodeAsJson()
         val rebuilt = SampleModelSnake.buildFromJson(json)
-        m must_== rebuilt
+        mo must_== rebuilt
       }
 
-      "Can JSON decode and write back" in {
-        val m = SampleModel.find(2).open_!
-        val json = m.encodeAsJson()
+      "Can JSON decode and write back" in new db(provider) {
+        val mo = SampleModel.find(2).open_!
+        val json = mo.encodeAsJson()
         val rebuilt = SampleModel.buildFromJson(json)
         rebuilt.firstName("yak").save
         val recalled = SampleModel.find(2).open_!
         recalled.firstName.is must_== "yak"
       }
 
-      "You can put stuff in a Set" in {
+      "You can put stuff in a Set" in new db(provider) {
         val m1 = SampleModel.find(1).open_!
         val m2 = SampleModel.find(1).open_!
 
@@ -199,7 +183,7 @@ object MapperSpec extends Specification("Mapper Specification") {
         s1.size must_== s2.size
       }
 
-      "Like works" in {
+      "Like works" in new db(provider) {
         val oo = SampleTag.findAll(Like(SampleTag.tag, "%oo%"))
 
         (oo.length > 0) must beTrue
@@ -224,39 +208,39 @@ object MapperSpec extends Specification("Mapper Specification") {
         }
       }
 
-      "Nullable Long works" in {
+      "Nullable Long works" in new db(provider) {
         SampleModel.create.firstName("fruit").moose(Full(77L)).save
 
-        SampleModel.findAll(By(SampleModel.moose, Empty)).length must_== 3L
-        SampleModel.findAll(NotBy(SampleModel.moose, Empty)).length must_== 2L
-        SampleModel.findAll(NotNullRef(SampleModel.moose)).length must_== 2L
-        SampleModel.findAll(NullRef(SampleModel.moose)).length must_== 3L
+        SampleModel.findAll(By(SampleModel.moose, Empty)).length must_== 3
+        SampleModel.findAll(NotBy(SampleModel.moose, Empty)).length must_== 2
+        SampleModel.findAll(NotNullRef(SampleModel.moose)).length must_== 2
+        SampleModel.findAll(NullRef(SampleModel.moose)).length must_== 3
       }
 
-      "enforce NOT NULL" in {
+      "enforce NOT NULL" in new db(provider) {
         val nullString: String = null
         SampleModel.create.firstName("Not Null").notNull(nullString).save must throwA[java.sql.SQLException]
       }
 
-      "enforce FK constraint on DefaultConnection" in {
+      "enforce FK constraint on DefaultConnection" in new db(provider) {
         val supportsFK = DB.use(DefaultConnectionIdentifier) { conn => conn.driverType.supportsForeignKeys_? }
-        if (!supportsFK) skip("Driver %s does not support FK constraints".format(provider))
+        supportsFK must beFalse.orSkip("Driver %s does not support FK constraints".format(provider))
 
         SampleTag.create.model(42).save must throwA[java.sql.SQLException]
       }
 
-      "not enforce FK constraint on SnakeConnection" in {
+      "not enforce FK constraint on SnakeConnection" in new db(provider) {
         SampleTagSnake.create.model(42).save
       }
 
-      "Precache works" in {
+      "Precache works" in new db(provider) {
         val oo = SampleTag.findAll(By(SampleTag.tag, "Meow"), PreCache(SampleTag.model))
 
         (oo.length > 0) must beTrue
         for (t <- oo) t.model.cached_? must beTrue
       }
 
-      "Precache works with OrderBy" in {
+      "Precache works with OrderBy" in new db(provider) {
         if ((provider ne DbProviders.DerbyProvider)
             && (provider ne DbProviders.MySqlProvider)) {
           // this doesn't work for Derby, but it's a derby bug
@@ -270,7 +254,7 @@ object MapperSpec extends Specification("Mapper Specification") {
         }
       }
 
-      "Non-deterministic Precache works" in {
+      "Non-deterministic Precache works" in new db(provider) {
         val dogs = Dog.findAll(By(Dog.name, "fido"), PreCache(Dog.owner, false))
         val oo = SampleTag.findAll(By(SampleTag.tag, "Meow"), PreCache(SampleTag.model, false))
 
@@ -278,7 +262,7 @@ object MapperSpec extends Specification("Mapper Specification") {
         for (t <- oo) t.model.cached_? must beTrue
       }
 
-      "Non-deterministic Precache works with OrderBy" in {
+      "Non-deterministic Precache works with OrderBy" in new db(provider) {
         val dogs = Dog.findAll(By(Dog.name, "fido"), OrderBy(Dog.name, Ascending), PreCache(Dog.owner, false))
         val oo = SampleTag.findAll(OrderBy(SampleTag.tag, Ascending), MaxRows(2), PreCache(SampleTag.model, false))
 
@@ -286,7 +270,7 @@ object MapperSpec extends Specification("Mapper Specification") {
         for (t <- oo) t.model.cached_? must beTrue
       }
 
-      "work with Mixed case" in {
+      "work with Mixed case" in new db(provider) {
         val elwood = Mixer.find(By(Mixer.name, "Elwood")).open_!
         val madeline = Mixer.find(By(Mixer.name, "Madeline")).open_!
         val archer = Mixer.find(By(Mixer.name, "Archer")).open_!
@@ -300,7 +284,7 @@ object MapperSpec extends Specification("Mapper Specification") {
         archer.weight.is must_== 105
       }
 
-      "work with Mixed case update and delete" in {
+      "work with Mixed case update and delete" in new db(provider) {
         val elwood = Mixer.find(By(Mixer.name, "Elwood")).open_!
         elwood.name.is must_== "Elwood"
         elwood.name("FruitBar").weight(966).save
@@ -317,7 +301,7 @@ object MapperSpec extends Specification("Mapper Specification") {
 
       }
 
-      "work with Mixed case update and delete for Dog2" in {
+      "work with Mixed case update and delete for Dog2" in new db(provider) {
         val elwood = Dog2.find(By(Dog2.name, "Elwood")).open_!
         elwood.name.is must_== "Elwood"
         elwood.name("FruitBar").actualAge(966).save
@@ -333,12 +317,12 @@ object MapperSpec extends Specification("Mapper Specification") {
         Dog2.find(By(Dog2.name, "Elwood")).isDefined must_== false
       }
 
-      "Non-autogenerated primary key items should be savable after a field has been changed" in {
+      "Non-autogenerated primary key items should be savable after a field has been changed" in new db(provider) {
         val item = TstItem.create.tmdbId(1L).saveMe
         item.name("test").save
       }
 
-      "we can read and write String primary keys" in {
+      "we can read and write String primary keys" in new db(provider) {
         val i1 = Thing.create.name("frog").saveMe
         val i2 = Thing.create.name("dog").saveMe
 
@@ -347,7 +331,7 @@ object MapperSpec extends Specification("Mapper Specification") {
       }
 
 
-      "Precache works with OrderBy with Mixed Case" in {
+      "Precache works with OrderBy with Mixed Case" in new db(provider) {
         if ((provider ne DbProviders.DerbyProvider)
             && (provider ne DbProviders.MySqlProvider)) {
           // this doesn't work for Derby, but it's a derby bug
@@ -361,7 +345,7 @@ object MapperSpec extends Specification("Mapper Specification") {
         }
       }
 
-      "Non-deterministic Precache works with Mixed Case" in {
+      "Non-deterministic Precache works with Mixed Case" in new db(provider) {
         val dogs = Dog2.findAll(By(Dog2.name, "fido"), PreCache(Dog2.owner, false))
         val oo = SampleTag.findAll(By(SampleTag.tag, "Meow"), PreCache(SampleTag.model, false))
 
@@ -370,7 +354,7 @@ object MapperSpec extends Specification("Mapper Specification") {
       }
 
 
-      "Createdat and updated at work" in {
+      "Createdat and updated at work" in new db(provider) {
         val now = Helpers.now
         val dog = Dog2.find().open_!
 
@@ -390,7 +374,7 @@ object MapperSpec extends Specification("Mapper Specification") {
         oldUpdate.getTime must_!= dog2.updatedAt.is.getTime
       }
 
-      "Non-deterministic Precache works with OrderBy with Mixed Case" in {
+      "Non-deterministic Precache works with OrderBy with Mixed Case" in new db(provider) {
         val dogs = Dog2.findAll(By(Dog2.name, "fido"), OrderBy(Dog2.name, Ascending), PreCache(Dog2.owner, false))
 
         val oo = SampleTag.findAll(OrderBy(SampleTag.tag, Ascending), MaxRows(2), PreCache(SampleTag.model, false))
@@ -399,7 +383,7 @@ object MapperSpec extends Specification("Mapper Specification") {
         for (t <- oo) t.model.cached_? must beTrue
       }
 
-      "Save flag works" in {
+      "Save flag works" in new db(provider) {
         val elwood = SampleModel.find(By(SampleModel.firstName, "Elwood")).open_!
         elwood.firstName.is must_== "Elwood"
         elwood.firstName("Frog").save
@@ -411,7 +395,7 @@ object MapperSpec extends Specification("Mapper Specification") {
         SampleModel.find(By(SampleModel.firstName, "Elwood")).isEmpty must_== true
       }
 
-      "accept a Seq[T] as argument to ByList query parameter" in {
+      "accept a Seq[T] as argument to ByList query parameter" in new db(provider) {
         // See http://github.com/dpp/liftweb/issues#issue/77 for original request
         val seq: Seq[String] = List("Elwood", "Archer")
         val result = SampleModel.findAll(ByList(SampleModel.firstName, seq))
@@ -419,7 +403,6 @@ object MapperSpec extends Specification("Mapper Specification") {
       }
     }
   })
-
   private def ignoreLogger(f: => AnyRef): Unit = ()
 }
 
@@ -732,8 +715,6 @@ class Dog2 extends LongKeyedMapper[Dog2] with CreatedUpdated {
     override def defaultValue = new _root_.java.util.Date()
     override def dbIndexed_? = true
   }
-
-
 }
 
 
@@ -754,4 +735,21 @@ object Dog2 extends Dog2 with LongKeyedMetaMapper[Dog2] {
   def getRefDate: _root_.java.util.Date = {
     new _root_.java.util.Date(1257089309453L)
   }
+}
+class db(provider: DbProviders.Provider) extends Success with MustThrownMatchers {
+  val doLog = false
+  private def ignoreLogger(f: => AnyRef): Unit = ()
+
+  def cleanup() {
+    Schemifier.destroyTables_!!(DefaultConnectionIdentifier, if (doLog) Schemifier.infoF _ else ignoreLogger _, SampleTag, SampleModel, Dog, Mixer, Dog2, User, TstItem, Thing)
+    Schemifier.destroyTables_!!(DbProviders.SnakeConnectionIdentifier, if (doLog) Schemifier.infoF _ else ignoreLogger _, SampleTagSnake, SampleModelSnake)
+    Schemifier.schemify(true, if (doLog) Schemifier.infoF _ else ignoreLogger _, DefaultConnectionIdentifier, SampleModel, SampleTag, User, Dog, Mixer, Dog2, TstItem, Thing)
+    Schemifier.schemify(true, if (doLog) Schemifier.infoF _ else ignoreLogger _, DbProviders.SnakeConnectionIdentifier, SampleModelSnake, SampleTagSnake)
+  }
+  (try {
+    provider.setupDB
+    cleanup
+   } catch {
+          case e => provider.required_? must beTrue.orSkip("Provider %s not available: %s".format(provider, e))
+   }) must not(throwAn[Exception]).orSkip
 }

@@ -17,7 +17,7 @@
 package net.liftweb
 package mapper
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import common._
 import util._
@@ -26,7 +26,9 @@ import util._
 /**
  * Systems under specification for MappedLongForeignKey.
  */
-object MappedLongForeignKeySpec extends Specification("MappedLongForeignKey Specification") {
+object MappedLongForeignKeySpec extends Specification {
+  "MappedLongForeignKey Specification".title
+  
   def provider = DbProviders.H2MemoryProvider
 
   def doLog = false
@@ -34,7 +36,7 @@ object MappedLongForeignKeySpec extends Specification("MappedLongForeignKey Spec
   private def ignoreLogger(f: => AnyRef): Unit = ()
 
   def cleanup() {
-    try { provider.setupDB } catch { case e if !provider.required_? => skip("Provider %s not available: %s".format(provider, e)) }
+    try { provider.setupDB } catch { case e => provider.required_? must beFalse.orSkip("Provider %s not available: %s".format(provider, e)) }
     Schemifier.destroyTables_!!(DefaultConnectionIdentifier, if (doLog) Schemifier.infoF _ else ignoreLogger _,  SampleTag, SampleModel, Dog, Mixer, Dog2, User)
     Schemifier.destroyTables_!!(DbProviders.SnakeConnectionIdentifier, if (doLog) Schemifier.infoF _ else ignoreLogger _, SampleTagSnake, SampleModelSnake)
     Schemifier.schemify(true, if (doLog) Schemifier.infoF _ else ignoreLogger _, DefaultConnectionIdentifier, SampleModel, SampleTag, User, Dog, Mixer, Dog2)
@@ -85,8 +87,8 @@ object MappedLongForeignKeySpec extends Specification("MappedLongForeignKey Spec
       val dog = Dog.create.owner(user)
       dog.owner(Empty)
       
-      dog.owner.obj mustBe Empty
-      dog.owner.is mustBe 0L
+      dog.owner.obj must_== Empty
+      dog.owner.is must_== 0L
     }
   }
 }

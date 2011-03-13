@@ -18,13 +18,13 @@ package net.liftweb
 package mongodb 
 package record 
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import com.mongodb._
 
-trait MongoTestKit {
-  this: Specification =>
-
+trait MongoTestKit extends Specification {
+  override def is = step(doBeforeSpec) ^ super.is ^ step(doAfterSpec)
+  
   def dbName = "lift_record_"+this.getClass.getName
     .replace("$", "")
     .replace("net.liftweb.mongodb.record.", "")
@@ -39,7 +39,7 @@ trait MongoTestKit {
 
   def debug = false
 
-  doBeforeSpec {
+  def doBeforeSpec = {
     // define the dbs
     dbs foreach { dbtuple =>
       MongoDB.defineDb(dbtuple._1, MongoAddress(dbtuple._2, dbtuple._3))
@@ -61,9 +61,9 @@ trait MongoTestKit {
     }
 
   def checkMongoIsRunning =
-    isMongoRunning must beEqualTo(true).orSkipExample
+    isMongoRunning must beEqualTo(true).orSkip
 
-  doAfterSpec {
+  def doAfterSpec = {
     if (!debug && isMongoRunning) {
       // drop the databases
       dbs foreach { dbtuple =>
