@@ -84,7 +84,7 @@ This is a tutorial on how to use MongoDB with Lift
   def withCollection[T <% Result](c: String)(t: DBCollection =>T): T = MongoDB.useCollection(c)(t)
   def withSession[T <% Result](f: (DB, DBCollection) => T): T = MongoDB.useSession { db => f(db, db.getCollection("testCollection")) }
   
-  def cleanup(name: String) = withDb { db => 
+  def cleanup(name: String) = if (isMongoRunning) withDb { db => 
     if (!debug) db.getCollection(name).drop
 	success
   }

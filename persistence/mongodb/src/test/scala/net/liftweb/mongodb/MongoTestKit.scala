@@ -44,7 +44,7 @@ trait MongoSetup  extends MustMatchers {
   def doBeforeSpec = {
     // define the dbs
     dbs foreach { dbtuple =>
-      MongoDB.defineDb(dbtuple._1, MongoAddress(dbtuple._2, dbtuple._3))
+      if (isMongoRunning) MongoDB.defineDb(dbtuple._1, MongoAddress(dbtuple._2, dbtuple._3))
     }
   }
 
@@ -61,8 +61,8 @@ trait MongoSetup  extends MustMatchers {
     } catch {
       case e: Exception => false
     }
-
-  def checkMongoIsRunning = isMongoRunning must be_==(true).orSkip
+  def beRunning: Matcher[Boolean] = ((_:Boolean), "MongoDb is running", "MongoDb is not running")
+  def checkMongoIsRunning = isMongoRunning must beRunning.orSkip
 
   def doAfterSpec = {
     if (!debug && isMongoRunning) {
@@ -73,7 +73,7 @@ trait MongoSetup  extends MustMatchers {
     }
 
     // clear the mongo instances
-    MongoDB.close
+    if (isMongoRunning) MongoDB.close
   }
 }
 
