@@ -30,8 +30,7 @@ import util.Helpers._
 import java.util.Calendar
 import scala.xml.{Node, Text}
 
-import org.specs._
-import org.specs.runner.{ConsoleRunner, JUnit3}
+import org.specs2.mutable._
 
 import fixtures._
 
@@ -39,12 +38,14 @@ import fixtures._
 /**
  * Systems under specification for RecordField.
  */
-object FieldSpec extends Specification("Record Field Specification") {
-  def passBasicTests[A](example: A, mandatory: MandatoryTypedField[A], legacyOptional: MandatoryTypedField[A], optional: OptionalTypedField[A])(implicit m: scala.reflect.Manifest[A]): Unit = {
+object FieldSpec extends Specification {
+  "Record Field Specification".title
+  
+  def passBasicTests[A](example: A, mandatory: MandatoryTypedField[A], legacyOptional: MandatoryTypedField[A], optional: OptionalTypedField[A])(implicit m: scala.reflect.Manifest[A]) = {
     val canCheckDefaultValues =
       !mandatory.defaultValue.isInstanceOf[Calendar] // don't try to use the default value of date/time typed fields, because it changes from moment to moment!
 
-    def commonBehaviorsForAllFlavors(in: TypedField[A]): Unit = {
+    def commonBehaviorsForAllFlavors(in: TypedField[A]) = {
       if (canCheckDefaultValues) {
         "which have the correct initial value" in {
           mandatory.value must_== mandatory.defaultValue
@@ -53,7 +54,7 @@ object FieldSpec extends Specification("Record Field Specification") {
       }
 
       "which are readable and writable" in {
-        mandatory.valueBox must verify(_.isDefined)
+        mandatory.valueBox.isDefined must beTrue
         mandatory.set(example)
         mandatory.value must_== example
         mandatory.valueBox must_== Full(example)
@@ -67,7 +68,7 @@ object FieldSpec extends Specification("Record Field Specification") {
 
       if (canCheckDefaultValues) {
         "which correctly clear back to the default" in {
-          mandatory.valueBox must verify(_.isDefined)
+          mandatory.valueBox.isDefined must beTrue
           mandatory.clear
           mandatory.valueBox must_== mandatory.defaultValueBox
         }
@@ -87,13 +88,13 @@ object FieldSpec extends Specification("Record Field Specification") {
       }
       
       "which initialize to some value" in {
-        mandatory.valueBox must verify(_.isDefined)
+        mandatory.valueBox.isDefined must beTrue
       }
 
       "which correctly fail to be set to Empty" in {
-        mandatory.valueBox must verify(_.isDefined)
+        mandatory.valueBox.isDefined must beTrue
         mandatory.setBox(Empty)
-        mandatory.valueBox must beLike { case Failure(s, _, _) if s == mandatory.notOptionalErrorMessage => true }
+        mandatory.valueBox must beLike { case Failure(s, _, _) if s == mandatory.notOptionalErrorMessage => ok }
       }
     }
 
@@ -125,6 +126,7 @@ object FieldSpec extends Specification("Record Field Specification") {
           legacyOptional.value must_== legacyOptional.defaultValue
           legacyOptional.valueBox must_== legacyOptional.defaultValueBox
         }
+	success
       }
     }
 
@@ -156,24 +158,23 @@ object FieldSpec extends Specification("Record Field Specification") {
     }
   }
 
-  def passConversionTests[A](example: A, mandatory: MandatoryTypedField[A], jsexp: JsExp, jvalue: JValue, formPattern: Box[String]): Unit = {
+  def passConversionTests[A](example: A, mandatory: MandatoryTypedField[A], jsexp: JsExp, jvalue: JValue, formPattern: Box[String]) = {
 
     "convert to JsExp" in {
       mandatory.set(example)
-      mandatory.asJs mustEqual jsexp
+      mandatory.asJs must_== jsexp
     }
 
     "convert to JValue" in {
       mandatory.set(example)
-      mandatory.asJValue mustEqual jvalue
+      mandatory.asJValue must_== jvalue
     }
 
     // toInternetDate doesn't retain millisecond data so, dates can't be compared accurately.
     if (!mandatory.defaultValue.isInstanceOf[Calendar]) {
       "get set from JValue" in {
-        mandatory.setFromJValue(jvalue) mustEqual Full(example)
-        mandatory.value mustEqual example
-        () // does not compile without this: no implicit argument matching parameter type scala.reflect.Manifest[org.specs.specification.Result[mandatory.MyType]]
+        mandatory.setFromJValue(jvalue) must_== Full(example)
+        mandatory.value must_== example
       }
     }
 
@@ -183,13 +184,15 @@ object FieldSpec extends Specification("Record Field Specification") {
         val session = new LiftSession("", randomString(20), Empty)
         S.initIfUninitted(session) {
           val formXml = mandatory.toForm
-          formXml must notBeEmpty
+          formXml must not be empty
           formXml foreach { f =>
             f.toString must beMatching(fp)
           }
         }
+	      success
       }
     }
+    success
   }
 
     /* Since Array[Byte]s cannot be compared, commenting out this test for now

@@ -60,6 +60,7 @@ object MongoRecordSpec extends MongoTestKit {
       for (name <- allExpectedFieldNames) {
         rec.fieldByName("x" + name + "y").isDefined must beFalse
       }
+	  success
     }
   }
 
@@ -250,6 +251,7 @@ object MongoRecordSpec extends MongoTestKit {
       mtrFromDb foreach { tr =>
         tr must_== mtr
       }
+	  success
     }
 
     "convert Mongo type fields to JValue" in {
@@ -355,7 +357,7 @@ object MongoRecordSpec extends MongoTestKit {
         )),
         ("legacyOptionalIntMapField", JsObj())
       )*/
-
+      success
     }
 
     "get set from json string using lift-json parser" in {
@@ -378,6 +380,7 @@ object MongoRecordSpec extends MongoTestKit {
       mtrFromJson foreach { tr =>
         tr must_== mtr
       }
+	  success
     }
 
     "handle null" in {
@@ -409,6 +412,7 @@ object MongoRecordSpec extends MongoTestKit {
         n.jsonobjlist.value(1).id must_== ntr.jsonobjlist.value(1).id
         n.jsonobjlist.value(1).name must_== ntr.jsonobjlist.value(1).name
       }
+	  success
     }
 
     "handle Box using JsonBoxSerializer" in {
@@ -435,6 +439,7 @@ object MongoRecordSpec extends MongoTestKit {
         sortedList(0).boxFull must_== Full("Full String1")
         sortedList(0).boxFail must_== Failure("Failure1")
       }
+	  success
     }
 
   }

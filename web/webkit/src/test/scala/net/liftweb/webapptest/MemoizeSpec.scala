@@ -17,7 +17,7 @@
 package net.liftweb
 package webapptest
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import common._
 import util._
@@ -35,51 +35,42 @@ object SessionInfo {
 /**
  * System under specification for Memoize.
  */
-object MemoizeSpec extends Specification("Memoize Specification") {
+object MemoizeSpec extends Specification {
+  "Memoize Specification".title
   import SessionInfo._
 
 
   "Memoize" should {
-    "Session memo should default to empty" >> {
-      S.initIfUninitted(session1) {
-        sessionMemo.get(3) must_== Empty
-      }
+    "Session memo should default to empty" >> session {
+      sessionMemo.get(3) must_== Empty
     }
 
-    "Session memo should be settable" >> {
-      S.initIfUninitted(session1) {
-        sessionMemo.get(3, 8) must_== 8
-
-        sessionMemo.get(3) must_== Full(8)
-      }
+    "Session memo should be settable" >> session {
+      sessionMemo.get(3, 8) must_== 8
+      sessionMemo.get(3) must_== Full(8)
     }
 
-    "Session memo should survive across calls" >> {
-      S.initIfUninitted(session1) {
-        sessionMemo.get(3) must_== Full(8)
-      }
+    "Session memo should survive across calls" >> session {
+      sessionMemo.get(3) must_== Full(8)
     }
 
-    "Session memo should not float across sessions" >> {
-      S.initIfUninitted(session2) {
-        sessionMemo.get(3) must_== Empty
-      }
+    "Session memo should not float across sessions" >> session {
+      sessionMemo.get(3) must_== Empty
     }
 
-    "Request memo should work in the same request" >> {
-      S.initIfUninitted(session1) {
-        requestMemo(3) must_== Empty
-        requestMemo(3, 44) must_== Full(44)
-        requestMemo(3) must_== Full(44)
-      }
+    "Request memo should work in the same request" >> session {
+      requestMemo(3) must_== Empty
+      requestMemo(3, 44) must_== Full(44)
+      requestMemo(3) must_== Full(44)
     }
 
-    "Request memo should not span requests" >> {
-      S.initIfUninitted(session1) {
-        requestMemo(3) must_== Empty
-      }
+    "Request memo should not span requests" >> session {
+      requestMemo(3) must_== Empty
     }
-
+  }
+  
+  object session extends org.specs2.specification.Around {
+    def around[T <% Result](t: =>T) = S.initIfUninitted(session1) { t }
   }
 }
 

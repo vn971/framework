@@ -18,7 +18,7 @@ package mockweb
 
 import scala.xml.{Null,Text,UnprefixedAttribute}
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import common._
 import util._
@@ -31,7 +31,8 @@ import mocks.MockHttpServletRequest
  * System under specification for MockWeb. This does the double duty as both a spec
  * against the MockWeb object as well as an example of how to use it.
  */
-object MockWebSpec extends Specification("MockWeb Specification") {
+object MockWebSpec extends Specification {
+  "MockWeb Specification".title
   import MockWeb._
 
 // TODO : Uncomment this code when LiftRules can be scoped
@@ -64,7 +65,6 @@ object MockWebSpec extends Specification("MockWeb Specification") {
 //  }
 
   "MockWeb" should {
-    shareVariables() // Avoid setting up LiftRules multiple times
 
     "provide a Req corresponding to a string url" in {
       testReq("http://foo.com/test/this?a=b&a=c", "/test") {

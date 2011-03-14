@@ -20,8 +20,8 @@ package rest
 
 import xml._
 
-import org.specs.Specification
-import org.specs.matcher.Matcher
+import org.specs2.mutable._
+import org.specs2.matcher.Matcher
 
 import common._
 import util.ControlHelpers.tryo
@@ -29,7 +29,8 @@ import util.ControlHelpers.tryo
 /**
  * System under specification for XMLApi.
  */
-object XmlApiSpec extends Specification("XMLApi Specification") {
+object XmlApiSpec extends Specification {
+  "XMLApi Specification".title
 
   object XMLApiExample extends XMLApiHelper {
     // Define our root tag
@@ -82,8 +83,7 @@ object XmlApiSpec extends Specification("XMLApi Specification") {
   }
 
   // A helper to simplify the specs matching
-  case class matchXmlResponse(expected : Node) extends Matcher[LiftResponse] {
-    def apply (response : => LiftResponse) = response match {
+  def matchXmlResponse(expected : Node): Matcher[LiftResponse]= (response: LiftResponse) => response match {
       case x : XmlResponse => {
         /* For some reason, the UnprefixedAttributes that Lift uses to merge in
          * new attributes makes comparison fail. Instead, we simply stringify and
@@ -93,9 +93,8 @@ object XmlApiSpec extends Specification("XMLApi Specification") {
          "%s matches %s".format(converted,expected),
          "%s does not match %s".format(converted, expected))
       }
-      case other => (false,"matches","not an XmlResponse")
+      case other => (false, "matches", "not an XmlResponse")
     }
-  }
 
   "XMLApiHelper" should {
     import XMLApiExample.produce

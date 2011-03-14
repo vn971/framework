@@ -28,6 +28,7 @@ import org.scalacheck.Prop._
  */
 object JsonParserSpec extends Specification with JValueGen with ScalaCheck {
   "JSON Parser Specification".title
+  sequential
   
   "Any valid json can be parsed" in check { (json: JValue) => 
     parse(Printer.pretty(render(json))) must not(throwA[java.lang.Exception])

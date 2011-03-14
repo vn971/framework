@@ -19,7 +19,7 @@ package record
 
 import java.util.Calendar
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import json.JsonAST._
 import util._
@@ -32,7 +32,9 @@ import fixtures._
 /**
  * Systems under specification for Record.
  */
-object RecordSpec extends Specification("Record Specification") {
+object RecordSpec extends Specification {
+  "Record Specification".title
+  
   "Record field introspection" should {
     val rec = FieldTypeTestRecord.createRecord
     val allExpectedFieldNames: List[String] = (for {
@@ -46,20 +48,22 @@ object RecordSpec extends Specification("Record Specification") {
 
     "correctly look up fields by name" in {
       for (name <- allExpectedFieldNames) {
-        rec.fieldByName(name) must verify(_.isDefined)
+        rec.fieldByName(name).isDefined must beTrue
       }
+	    success
     }
 
     "not look up fields by bogus names" in {
       for (name <- allExpectedFieldNames) {
-        rec.fieldByName("x" + name + "y") must not(verify(_.isDefined))
+        rec.fieldByName("x" + name + "y").isDefined must beFalse
       }
+      success
     }
   }
 
   "Record lifecycle callbacks" should {
-    def testOneHarness(scope: String, f: LifecycleTestRecord => HarnessedLifecycleCallbacks): Unit = {
-      ("be called before validation when specified at " + scope) in {
+    def testOneHarness(scope: String, f: LifecycleTestRecord => HarnessedLifecycleCallbacks) = {
+      "be called before validation when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).beforeValidationHarness = () => triggered = true
@@ -67,7 +71,7 @@ object RecordSpec extends Specification("Record Specification") {
         triggered must_== true
       }
 
-      ("be called after validation when specified at " + scope) in {
+      "be called after validation when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).afterValidationHarness = () => triggered = true
@@ -75,7 +79,7 @@ object RecordSpec extends Specification("Record Specification") {
         triggered must_== true
       }
 
-      ("be called around validate when specified at " + scope) in {
+      "be called around validate when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggeredBefore = false
         var triggeredAfter = false
@@ -86,7 +90,7 @@ object RecordSpec extends Specification("Record Specification") {
         triggeredAfter must_== true
       }
 
-      ("be called before save when specified at " + scope) in {
+      "be called before save when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).beforeSaveHarness = () => triggered = true
@@ -94,7 +98,7 @@ object RecordSpec extends Specification("Record Specification") {
         triggered must_== true
       }
 
-      ("be called before create when specified at " + scope) in {
+      "be called before create when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).beforeCreateHarness = () => triggered = true
@@ -102,7 +106,7 @@ object RecordSpec extends Specification("Record Specification") {
         triggered must_== true
       }
 
-      ("be called before update when specified at " + scope) in {
+      "be called before update when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).beforeUpdateHarness = () => triggered = true
@@ -110,7 +114,7 @@ object RecordSpec extends Specification("Record Specification") {
         triggered must_== true
       }
 
-      ("be called after save when specified at " + scope) in {
+      "be called after save when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).afterSaveHarness = () => triggered = true
@@ -118,7 +122,7 @@ object RecordSpec extends Specification("Record Specification") {
         triggered must_== true
       }
 
-      ("be called after create when specified at " + scope) in {
+      "be called after create when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).afterCreateHarness = () => triggered = true
@@ -126,7 +130,7 @@ object RecordSpec extends Specification("Record Specification") {
         triggered must_== true
       }
 
-      ("be called after update when specified at " + scope) in {
+      "be called after update when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).afterUpdateHarness = () => triggered = true
@@ -134,7 +138,7 @@ object RecordSpec extends Specification("Record Specification") {
         triggered must_== true
       }
 
-      ("be called before delete when specified at " + scope) in {
+      "be called before delete when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).beforeDeleteHarness = () => triggered = true
@@ -142,7 +146,7 @@ object RecordSpec extends Specification("Record Specification") {
         triggered must_== true
       }
 
-      ("be called after delete when specified at " + scope) in {
+      "be called after delete when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).afterDeleteHarness = () => triggered = true
@@ -227,16 +231,16 @@ object RecordSpec extends Specification("Record Specification") {
     )
 
     "convert to JsExp (via asJSON)" in {
-      fttr.asJSON mustEqual fttrAsJsObj
+      fttr.asJSON must_== fttrAsJsObj
     }
 
     /*  Test broken
     "convert to JsExp (via asJsExp)" in {
-      fttr.asJsExp mustEqual fttrAsJsObj
+      fttr.asJsExp must_== fttrAsJsObj
     }*/
 
     "convert to JValue" in {
-      fttr.asJValue mustEqual JObject(List(
+      fttr.asJValue must_== JObject(List(
         JField("mandatoryBooleanField", JBool(false)),
         JField("legacyOptionalBooleanField", JNothing),
         JField("optionalBooleanField", JNothing),
@@ -287,19 +291,21 @@ object RecordSpec extends Specification("Record Specification") {
 
     "get set from json string using lift-json parser" in {
       val fttrFromJson = FieldTypeTestRecord.fromJsonString(json)
-      fttrFromJson must notBeEmpty
+      fttrFromJson must not be empty
       fttrFromJson foreach { r =>
-        r.mandatoryDecimalField.value mustEqual fttr.mandatoryDecimalField.value
-        r mustEqual fttr
+        r.mandatoryDecimalField.value must_== fttr.mandatoryDecimalField.value
+        r must_== fttr
       }
+	  success
     }
 
     "get set from json string using util.JSONParser" in {
       val fttrFromJSON = FieldTypeTestRecord.fromJSON(json)
-      fttrFromJSON must notBeEmpty
+      fttrFromJSON must not be empty
       fttrFromJSON foreach { r =>
-        r mustEqual fttr
+        r must_== fttr
       }
+	  success
     }
   }
   
