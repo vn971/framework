@@ -17,10 +17,15 @@
 package net.liftweb
 package mongodb
 
-import org.specs2.mutable._
+import org.specs2.matcher._
 
+trait MongoTestKit extends MongoSetup with org.specs2.mutable.Specification {
+  override def is = step(doBeforeSpec) ^ super.is ^ step(doAfterSpec)
+}
 
-trait MongoTestKit extends Specification {
+trait MongoAcceptance extends MongoSetup with org.specs2.Specification
+
+trait MongoSetup  extends MustMatchers {
   
   def dbName = "lift_"+this.getClass.getName
     .replace("$", "")
@@ -35,7 +40,6 @@ trait MongoTestKit extends Specification {
 
   def debug = false
 
-  override def is = step(doBeforeSpec) ^ super.is ^ step(doAfterSpec)
    
   def doBeforeSpec = {
     // define the dbs
