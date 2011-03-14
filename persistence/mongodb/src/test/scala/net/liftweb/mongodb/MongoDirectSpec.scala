@@ -55,8 +55,8 @@ This is a tutorial on how to use MongoDB with Lift
       "skip elements and limit the result set"                                             ! db(collection.e9)^
       "get sorted results"                                                                 ! db(collection.e10)^
       "remove elements with a query"                                                       ! db(collection.e11)^
-	  Step(cleanup("testCollection"))                                                      ^
-                                                                                     	  p^
+      Step(cleanup("testCollection"))                                                      ^
+                                                                                           p^
     "Or we can also use a DB session"                                                      ^
       "to save documents with an index on the name"                                        ! db(session.e1)^
         "saving a document with the same name must return an error"                        ! db(session.e2)^
