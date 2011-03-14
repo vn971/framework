@@ -101,7 +101,7 @@ This is a tutorial on how to use MongoDB with Lift
       coll.findOne must_== doc
     }
 
-    def e2 = e1 and withDb { db =>
+    def e2 = withDb { db =>
       // upsert
       val coll = db.getCollection("testCollection")
       val doc = coll.findOne
@@ -118,7 +118,7 @@ This is a tutorial on how to use MongoDB with Lift
       (coll.findOne.get("type"), coll.findOne.get("count")) must be_===(("document", 2))
     }
     
-    def e3 = e2 and withDb { db =>
+    def e3 = withDb { db =>
       val coll = db.getCollection("testCollection")
       // modifier operations $inc, $set, $push...
       val q = new BasicDBObject("name", "MongoDB") // the query to select the document(s) to update
@@ -146,11 +146,11 @@ This is a tutorial on how to use MongoDB with Lift
       coll.getCount must_== 100
     }
     
-    def e2 = e1 and withCollection("iDoc") { coll =>
+    def e2 = withCollection("iDoc") { coll =>
       coll.getCount(new BasicDBObject("i", new BasicDBObject("$gt", 50))) must_== 50
     }
 
-    def e3 = e1 and withCollection("iDoc") { coll =>
+    def e3 = withCollection("iDoc") { coll =>
       coll.find.count must_== 100
     }
 
@@ -162,19 +162,19 @@ This is a tutorial on how to use MongoDB with Lift
       (cur2.count, cur2.next.get("i")) must be_===((1, 71))
     }
 
-    def e5 = e4 and withCollection("iDoc") { coll => 
+    def e5 = withCollection("iDoc") { coll => 
       coll.find(new BasicDBObject("i", new BasicDBObject("$gt", 50))).count must_== 50
     }
     
-    def e6 = e4 and withCollection("iDoc") { coll => 
+    def e6 = withCollection("iDoc") { coll => 
       coll.find(new BasicDBObject("i", new BasicDBObject("$gt", 20).append("$lte", 30))).count must_== 10
     }
     
-    def e7 = e4 and withCollection("iDoc") { coll => 
+    def e7 = withCollection("iDoc") { coll => 
       coll.find(new BasicDBObject("i", new BasicDBObject("$gt", 50))).limit(3).count must_== 3
     }
     
-    def e8 = e4 and withCollection("iDoc") { coll => 
+    def e8 = withCollection("iDoc") { coll => 
       val cur6 = coll.find(new BasicDBObject("i", new BasicDBObject("$gt", 50))).skip(10)
 
       var cntr6 = 0
@@ -185,7 +185,7 @@ This is a tutorial on how to use MongoDB with Lift
       cntr6 must_== 40
     }
 
-    def e9 = e4 and withCollection("iDoc") { coll => 
+    def e9 = withCollection("iDoc") { coll => 
       val cur7 = coll.find.skip(10).limit(20)
 
       var cntr7 = 0
@@ -196,7 +196,7 @@ This is a tutorial on how to use MongoDB with Lift
       cntr7 must_== 20
     }
     
-    def e10 = e4 and withCollection("iDoc") { coll => 
+    def e10 = withCollection("iDoc") { coll => 
       val cur8 = coll.find.sort(new BasicDBObject("i", -1)) // descending
       var cntr8 = 100
       while(cur8.hasNext) {
@@ -206,24 +206,12 @@ This is a tutorial on how to use MongoDB with Lift
       success
     }
 
-    def e11 = e4 and withCollection("iDoc") { coll => 
+    def e11 = withCollection("iDoc") { coll => 
       coll.remove(new BasicDBObject("i", new BasicDBObject("$gt", 50)))
       coll.find.count must_== 50
     }
   }
 
-  object s extends BeforeAfter {
-    def before = checkMongoIsRunning
-    
-    def after = withSession { (db, coll) => 
-      if (!debug) {
-        coll.remove(new BasicDBObject("type", "db"))
-        coll.drop
-      }
-      success
-    }
-  }
-  
   object session extends MustThrownMatchers {
     def e1 = withSession { (db, coll) =>
       // create a unique index on name
@@ -233,17 +221,17 @@ This is a tutorial on how to use MongoDB with Lift
       db.getLastError.get("err") must beNull
     }
 
-    def e2 = e1 and withSession { (db, coll) =>
+    def e2 = withSession { (db, coll) =>
       coll.save(createDoc2)
       db.getLastError.get("err").toString must startWith("E11000 duplicate key error index")
     }
 
-    def e3 = e1 and withSession { (db, coll) =>
+    def e3 = withSession { (db, coll) =>
       coll.save(createDoc3)
       db.getLastError.get("err") must beNull
     }
     
-    def e4 = e3 and withSession { (db, coll) =>
+    def e4 = withSession { (db, coll) =>
       coll.find(new BasicDBObject("type", "db")).count must_== 2
     }
     
@@ -273,11 +261,11 @@ This is a tutorial on how to use MongoDB with Lift
     val key = "name"
     val regex = "^Mongo"
     
-    def e7 = e4 and withSession { (db, coll) =>
+    def e7 = withSession { (db, coll) =>
       coll.find(BasicDBObjectBuilder.start.add(key, Pattern.compile(regex)).get).count must_== 2
     }
 
-    def e8 = e4 and withSession { (db, coll) =>
+    def e8 = withSession { (db, coll) =>
       coll.find(BasicDBObjectBuilder.start.add(key, Pattern.compile(regex)).add("count", 1).get).count must_== 1
     }
   }
