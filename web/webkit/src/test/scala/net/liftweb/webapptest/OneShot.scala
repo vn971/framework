@@ -129,8 +129,6 @@ object OneShot extends Specification with RequestKit {
 
   "OneShot" should {
 
-    setSequential()
-
     "fire once for oneshot" in {
       Counter.x = 0
 

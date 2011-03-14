@@ -18,7 +18,7 @@ package net.liftweb
 package webapptest
 
 import org.specs2.mutable._
-
+import org.specs2.execute._
 import common._
 import util._
 import http._
@@ -60,7 +60,7 @@ object MemoizeSpec extends Specification {
 
     "Request memo should work in the same request" >> session {
       requestMemo(3) must_== Empty
-      requestMemo(3, 44) must_== Full(44)
+      requestMemo(3, 44) must be_===(Full(44))
       requestMemo(3) must_== Full(44)
     }
 

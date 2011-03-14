@@ -29,9 +29,10 @@ import common._
  */
 object MailerSpec extends Specification {
   "Mailer Specification".title
+  sequential
   
-  MyMailer.touch()
-
+  step(MyMailer.touch())
+  
   import MyMailer._
   
   private def doNewMessage(f: => Unit): MimeMessage = {
@@ -105,7 +106,7 @@ object MyMailer extends MailerImpl {
 
    testModeSend.default.set((msg: MimeMessage) => {
      lastMessage = Full(msg)
-//     MailerSpec.this.notifyAll()
+     notifyAll()
    })
 
   def touch() {

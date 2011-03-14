@@ -28,7 +28,6 @@ import org.scalacheck.Prop._
  */
 object JsonParserSpec extends Specification with JValueGen with ScalaCheck {
   "JSON Parser Specification".title
-  sequential
   
   "Any valid json can be parsed" in check { (json: JValue) => 
     parse(Printer.pretty(render(json))) must not(throwA[java.lang.Exception])
@@ -44,10 +43,15 @@ object JsonParserSpec extends Specification with JValueGen with ScalaCheck {
     import java.util.concurrent._
 
     val json = Examples.person
-    val executor = Executors.newFixedThreadPool(100)
-    val results = (0 to 100).map(_ =>
-      executor.submit(new Callable[JValue] { def call = parse(json) })).toList.map(_.get)
-    results.zip(results.tail).forall(pair => pair._1 == pair._2) must_== true
+    val executor = Executors.newFixedThreadPool(10)
+    try {
+      val results = (0 to 10).map(_ =>
+        executor.submit(new Callable[JValue] { def call = parse(json) })).toList.map(_.get)
+      results.zip(results.tail).forall(pair => pair._1 == pair._2) must_== true
+    } finally { 
+      executor.shutdown()
+    }
+    
   }
 
   "All valid string escape characters can be parsed" in {
