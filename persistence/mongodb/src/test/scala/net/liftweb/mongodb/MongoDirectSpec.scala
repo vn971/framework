@@ -30,7 +30,7 @@ import json.DefaultFormats
 /**
  * System under specification for Mongodb(direct.
  */
-object MongoDirectSpec extends MongoAcceptance { def is = sequential^  
+object MongoDirectSpec extends MongoAcceptance { def is = sequential^
   "MongoDirect Specification".title ^
                                                                                            """
 This is a tutorial on how to use MongoDB with Lift
@@ -85,7 +85,9 @@ This is a tutorial on how to use MongoDB with Lift
   def withSession[T <% Result](f: (DB, DBCollection) => T): T = MongoDB.useSession { db => f(db, db.getCollection("testCollection")) }
   
   def cleanup(name: String) = if (isMongoRunning) withDb { db => 
-    if (!debug) db.getCollection(name).drop
+    if (!debug) {
+	  db.getCollection(name).drop
+	}
 	success
   }
   
@@ -115,7 +117,8 @@ This is a tutorial on how to use MongoDB with Lift
       coll.update(q, o, upsert, apply)
 
       // get the doc back from the db and compare
-      (coll.findOne.get("type"), coll.findOne.get("count")) must be_===(("document", 2))
+	  val retrieved = coll.findOne
+      (retrieved.get("type"), retrieved.get("count")) must be_===(("document", 2))
     }
     
     def e3 = withDb { db =>
@@ -128,7 +131,8 @@ This is a tutorial on how to use MongoDB with Lift
       coll.update(q, o2, false, false)
 
       // get the doc back from the db and compare
-      (coll.findOne.get("type"), coll.findOne.get("count")) must be_===(("document", 3))
+	  val retrieved = coll.findOne
+      (retrieved.get("type"), retrieved.get("count")) must be_===(("docdb", 3))
     }
     
     def e4 = withDb { db =>
@@ -171,7 +175,13 @@ This is a tutorial on how to use MongoDB with Lift
     }
     
     def e7 = withCollection("iDoc") { coll => 
-      coll.find(new BasicDBObject("i", new BasicDBObject("$gt", 50))).limit(3).count must_== 3
+      val cur5 = coll.find(new BasicDBObject("i", new BasicDBObject("$gt", 50))).limit(3)
+	  var cntr5 = 0
+      while(cur5.hasNext) {
+        cur5.next
+        cntr5 += 1
+      }
+      cntr5 must_== 3
     }
     
     def e8 = withCollection("iDoc") { coll => 
