@@ -60,8 +60,6 @@ object CustomSerializersSpec extends MongoTestKit {
 
   "CustomSerializers" should {
     "handle Date as String value" in {
-      checkMongoIsRunning
-
       // test data
       val bdjack = Calendar.getInstance
       bdjack.setTimeZone(utc)
@@ -78,12 +76,10 @@ object CustomSerializersSpec extends MongoTestKit {
         j._id must_== jack._id
         j.birthDate must_== jack.birthDate
       }
-	  success
+      success
     }
 
     "handle Date as Date value using DateSerializer" in {
-      checkMongoIsRunning
-
       // test data
       val bdjack = Calendar.getInstance
       bdjack.setTimeZone(utc)
@@ -100,7 +96,7 @@ object CustomSerializersSpec extends MongoTestKit {
         j._id must_== jack._id
         j.birthDate must_== jack.birthDate
       }
-	  success
+	    success
     }
   }
 }

@@ -185,9 +185,6 @@ object MongoDocumentExamplesSpec extends MongoTestKit {
   override def dbs = (TstDBa, defaultHost, "lift_mongodocumentexamples_a") :: super.dbs
 
   "Simple Person example" in {
-
-    checkMongoIsRunning
-
     // create a new SimplePerson
     val pid = ObjectId.get
     val p = SimplePerson(pid, "Tim", 38)
@@ -234,13 +231,10 @@ object MongoDocumentExamplesSpec extends MongoTestKit {
 
       SimplePerson.drop
     }
-	success
+	  success
   }
 
   "Multiple Simple Person example" in {
-
-    checkMongoIsRunning
-
     // create new SimplePersons
     val p = SimplePerson(ObjectId.get, "Jill", 27)
     val p2 = SimplePerson(ObjectId.get, "Bob", 25)
@@ -286,13 +280,10 @@ object MongoDocumentExamplesSpec extends MongoTestKit {
 
       SimplePerson.drop
     }
-	success
+  	success
   }
 
   "Person example" in {
-
-    checkMongoIsRunning
-
     def date(s: String) = Person.formats.dateFormat.parse(s).get
 
     val cal = Calendar.getInstance
@@ -322,14 +313,12 @@ object MongoDocumentExamplesSpec extends MongoTestKit {
 
       Person.drop
     }
-	success
+	  success
   }
 
   "Mongo tutorial example" in {
 
     import scala.collection.JavaConversions._
-
-    checkMongoIsRunning
 
     // get the indexes
     val ixs = MongoDB.useCollection(TstCollection.collectionName)( coll => {
@@ -471,12 +460,10 @@ object MongoDocumentExamplesSpec extends MongoTestKit {
     IDoc.findAll.length must_== 50
 
     IDoc.drop
-	success
+	  success
   }
 
   "Mongo useSession example" in {
-
-    checkMongoIsRunning
 
     val tc = SessCollection(ObjectId.get, "MongoSession", "db", 1)
     val tc2 = SessCollection(ObjectId.get, "MongoSession", "db", 1)
@@ -533,12 +520,10 @@ object MongoDocumentExamplesSpec extends MongoTestKit {
         SessCollection.drop
       }
     })
-	success
+	  success
   }
 
   "Primitives example" in {
-
-    checkMongoIsRunning
 
     def date(s: String) = Primitive.formats.dateFormat.parse(s).get
 
@@ -561,12 +546,10 @@ object MongoDocumentExamplesSpec extends MongoTestKit {
       pFromDb.isEmpty must_== true
       Primitive.drop
     }
-	success
+	  success
   }
 
   "Ref example" in {
-
-    checkMongoIsRunning
 
     val ref1 = RefJDoc(ObjectId.get)
     val ref2 = RefJDoc(ObjectId.get)
@@ -617,12 +600,10 @@ object MongoDocumentExamplesSpec extends MongoTestKit {
 
     MainJDoc.drop
     RefJDoc.drop
-	success
+	  success
   }
 
   "Pattern example" in {
-
-    checkMongoIsRunning
 
     val pdoc1 = PatternDoc(ObjectId.get, Pattern.compile("^Mo", Pattern.CASE_INSENSITIVE))
     pdoc1.save
@@ -633,12 +614,10 @@ object MongoDocumentExamplesSpec extends MongoTestKit {
         pdoc.regx.pattern must_== pdoc1.regx.pattern
         pdoc.regx.flags must_== pdoc1.regx.flags
     }
-	success
+  	success
   }
 
   "Issue 586 Date test" in {
-
-    checkMongoIsRunning
 
     def date(s: String): Date = StringDateDoc.formats.dateFormat.parse(s).get
 

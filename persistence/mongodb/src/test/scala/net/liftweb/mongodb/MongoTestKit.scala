@@ -20,7 +20,9 @@ package mongodb
 import org.specs2.matcher._
 
 trait MongoTestKit extends MongoSetup with org.specs2.mutable.Specification {
-  override def is = step(doBeforeSpec) ^ super.is ^ step(doAfterSpec)
+  override def is = args(sequential=true, skipAll=(!isMongoRunning)).overrideWith(additionalArgs) ^ super.is ^ step(doAfterSpec)
+  /** override this method to provide more arguments */
+  def additionalArgs = args()
 }
 
 trait MongoAcceptance extends MongoSetup with org.specs2.Specification
@@ -40,11 +42,6 @@ trait MongoSetup  extends MustMatchers {
 
   def debug = false
    
-  def doBeforeSpec = {
-    // define the dbs
-    dbs foreach { dbtuple => MongoDB.defineDb(dbtuple._1, MongoAddress(dbtuple._2, dbtuple._3)) }
-  }
-
   lazy val isMongoRunning: Boolean = {
     dbs foreach { dbtuple => MongoDB.defineDb(dbtuple._1, MongoAddress(dbtuple._2, dbtuple._3)) }
     try {
@@ -53,9 +50,6 @@ trait MongoSetup  extends MustMatchers {
     } catch { case e: Exception => false }
   }
   
-  def beRunning: Matcher[Boolean] = ((_:Boolean), "MongoDb is running", "MongoDb is not running")
-  def checkMongoIsRunning = isMongoRunning must beRunning.orSkip
-
   def doAfterSpec = {
     if (!debug && isMongoRunning) {
       // drop the databases
