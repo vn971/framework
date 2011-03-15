@@ -74,7 +74,7 @@ class LiftFrameworkProject(info: ProjectInfo) extends ParentProject(info) with L
 
       // Specs needed in 'provided' scope, this will lead to duplications in testclasspath though
       override def libraryDependencies =
-        super.libraryDependencies ++ Seq("org.scala-tools.testing" %% "specs" % specsVersion % "provided")
+        super.libraryDependencies ++ Seq("org.scala-tools.testing" %% "specs" % specsVersion % "provided", "org.specs2" %% "specs2" % "1.1-SNAPSHOT" % "provided")
 
       // Move testkit dependency from 'compile' (default) to 'provided' scope
       override def deliverProjectDependencies =
