@@ -36,7 +36,6 @@ object MongoDirectSpec extends MongoAcceptance { def is = args(sequential=true, 
                                                                                            """
 This is a tutorial on how to use MongoDB with Lift
                                                                                            """^p^
-  Step(doBeforeSpec)                                                                       ^ 
     "First we use the DB directly"                                                         ^
       "to save a db object and retrieve it. It should be the same doc we built"            ! direct.e1^
       "we can also upsert the document"                                                    ! direct.e2^
@@ -86,9 +85,7 @@ This is a tutorial on how to use MongoDB with Lift
   def withSession[T <% Result](f: (DB, DBCollection) => T): T = MongoDB.useSession { db => f(db, db.getCollection("testCollection")) }
   
   def cleanup(name: String) = if (isMongoRunning) withDb { db => 
-    if (!debug) {
-	  db.getCollection(name).drop
-	}
+    if (!debug) { db.getCollection(name).drop }
 	success
   }
   
