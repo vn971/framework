@@ -30,7 +30,7 @@ import json.DefaultFormats
 /**
  * System under specification for Mongodirect.
  */
-object MongoDirectSpec extends MongoAcceptance { def is = args(sequential=true, plan=(!isMongoRunning))^
+object MongoDirectSpec extends MongoAcceptance { def is = args(sequential=true, skipAll=(!isMongoRunning))^
   "MongoDirect Specification".title ^
   (if (!isMongoRunning) "MongoDB is not running" else "")                                  ^end^
                                                                                            """
