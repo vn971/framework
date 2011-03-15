@@ -26,7 +26,6 @@ import http._
 object SessionInfo {
   lazy val session1 = new LiftSession("/", Helpers.randomString(20), Empty)
   lazy val session2 = new LiftSession("/", Helpers.randomString(20), Empty)
-
   object sessionMemo extends SessionMemoize[Int, Int]
   object requestMemo extends RequestMemoize[Int, Int]
 }
@@ -36,41 +35,43 @@ object SessionInfo {
  * System under specification for Memoize.
  */
 object MemoizeSpec extends Specification {
+  sequential
   "Memoize Specification".title
   import SessionInfo._
 
-
   "Memoize" should {
-    "Session memo should default to empty" >> session {
+    "Session memo should default to empty" >> inSession1 {
       sessionMemo.get(3) must_== Empty
     }
 
-    "Session memo should be settable" >> session {
+    "Session memo should be settable" >> inSession1 {
       sessionMemo.get(3, 8) must_== 8
       sessionMemo.get(3) must_== Full(8)
     }
 
-    "Session memo should survive across calls" >> session {
+    "Session memo should survive across calls" >> inSession1 {
       sessionMemo.get(3) must_== Full(8)
     }
 
-    "Session memo should not float across sessions" >> session {
+    "Session memo should not float across sessions" >> inSession2 {
       sessionMemo.get(3) must_== Empty
     }
 
-    "Request memo should work in the same request" >> session {
+    "Request memo should work in the same request" >> inSession1 {
       requestMemo(3) must_== Empty
       requestMemo(3, 44) must be_===(Full(44))
       requestMemo(3) must_== Full(44)
     }
 
-    "Request memo should not span requests" >> session {
+    "Request memo should not span requests" >> inSession1 {
       requestMemo(3) must_== Empty
     }
   }
-  
-  object session extends org.specs2.specification.Around {
+  object inSession1 extends org.specs2.specification.Around {
     def around[T <% Result](t: =>T) = S.initIfUninitted(session1) { t }
+  }
+  object inSession2 extends org.specs2.specification.Around {
+    def around[T <% Result](t: =>T) = S.initIfUninitted(session2) { t }
   }
 }
 
