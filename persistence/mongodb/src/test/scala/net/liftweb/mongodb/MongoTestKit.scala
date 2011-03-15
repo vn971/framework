@@ -39,20 +39,16 @@ trait MongoSetup  extends MustMatchers {
   def dbs: List[(MongoIdentifier, MongoHost, String)] = List((DefaultMongoIdentifier, defaultHost, dbName))
 
   def debug = false
-
    
   def doBeforeSpec = {
     // define the dbs
     dbs foreach { dbtuple => MongoDB.defineDb(dbtuple._1, MongoAddress(dbtuple._2, dbtuple._3)) }
   }
 
-  def isMongoRunning: Boolean =
+  lazy val isMongoRunning: Boolean =
     try {
       if (dbs.isEmpty) false
-      else {
-        dbs foreach { dbtuple => MongoDB.use(dbtuple._1)(_.getLastError) }
-        true
-      }
+      else dbs exists { dbtuple => MongoDB.use(dbtuple._1)(db => true) }
     } catch { case e: Exception => false }
 	
   def beRunning: Matcher[Boolean] = ((_:Boolean), "MongoDb is running", "MongoDb is not running")

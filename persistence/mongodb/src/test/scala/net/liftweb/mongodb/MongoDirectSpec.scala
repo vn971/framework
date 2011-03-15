@@ -28,52 +28,53 @@ import json.DefaultFormats
 
 
 /**
- * System under specification for Mongodb(direct.
+ * System under specification for Mongodirect.
  */
-object MongoDirectSpec extends MongoAcceptance { def is = sequential^
+object MongoDirectSpec extends MongoAcceptance { def is = args(sequential=true, plan=(!isMongoRunning))^
   "MongoDirect Specification".title ^
+  (if (!isMongoRunning) "MongoDB is not running" else "")                                  ^end^
                                                                                            """
 This is a tutorial on how to use MongoDB with Lift
                                                                                            """^p^
   Step(doBeforeSpec)                                                                       ^ 
     "First we use the DB directly"                                                         ^
-      "to build a basic db object with an embedded info object"                            ^
-      "then we save it and if we retrieve it, it should be the same doc we built"          ! db(direct.e1)^
-      "we can also upsert the document"                                                    ! db(direct.e2)^
-      "we can increment the document or change its type"                                   ! db(direct.e3)^
-      "we can also execute some server-side code"                                          ! db(direct.e4)^
+      "to save a db object and retrieve it. It should be the same doc we built"            ! direct.e1^
+      "we can also upsert the document"                                                    ! direct.e2^
+      "we can increment the document or change its type"                                   ! direct.e3^
+      "we can also execute some server-side code"                                          ! direct.e4^
                                                                                            p^
     "We can also use a DB collection to"                                                   ^
-      "create a list of documents with an index"                                           ! db(collection.e1)^
-      "get the count with a query"                                                         ! db(collection.e2)^
-      "get the count with a cursor"                                                        ! db(collection.e3)^
-      "get a single element with a query"                                                  ! db(collection.e4)^
-      "get a count with a 'greater than' query"                                            ! db(collection.e5)^
-      "get a count with a 'less than equal' query"                                         ! db(collection.e6)^
-      "limit the result set"                                                               ! db(collection.e7)^
-      "skip elements"                                                                      ! db(collection.e8)^
-      "skip elements and limit the result set"                                             ! db(collection.e9)^
-      "get sorted results"                                                                 ! db(collection.e10)^
-      "remove elements with a query"                                                       ! db(collection.e11)^
+      "create a list of documents with an index"                                           ! collection.e1^
+      "get the count with a query"                                                         ! collection.e2^
+      "get the count with a cursor"                                                        ! collection.e3^
+      "get a single element with a query"                                                  ! collection.e4^
+      "get a count with a 'greater than' query"                                            ! collection.e5^
+      "get a count with a 'less than equal' query"                                         ! collection.e6^
+      "limit the result set"                                                               ! collection.e7^
+      "skip elements"                                                                      ! collection.e8^
+      "skip elements and limit the result set"                                             ! collection.e9^
+      "get sorted results"                                                                 ! collection.e10^
+      "remove elements with a query"                                                       ! collection.e11^
       Step(cleanup("testCollection"))                                                      ^
                                                                                            p^
     "Or we can also use a DB session"                                                      ^
-      "to save documents with an index on the name"                                        ! db(session.e1)^
-        "saving a document with the same name must return an error"                        ! db(session.e2)^
-        "whereas saving a document with a different name should be ok"                     ! db(session.e3)^
-        "and documents can be retrieved with a query"                                      ! db(session.e4)^
+      "to save documents"                                                                  ^
+        "with an index on the name"                                                        ! session.e1^
+        "saving a document with the same name must return an error"                        ! session.e2^
+        "whereas saving a document with a different name should be ok"                     ! session.e3^
+        "and documents can be retrieved with a query"                                      ! session.e4^
                                                                                            p^
       "to update documents"                                                                ^
-        "with an $inc - increment - function"                                              ! db(session.e5)^
-        "unless they can't be found"                                                       ! db(session.e6)^
+        "with an $inc - increment - function"                                              ! session.e5^
+        "unless they can't be found"                                                       ! session.e6^
                                                                                            p^
       "to query for documents"                                                             ^
-        "with a regular expression"                                                        ! db(session.e7)^
-        "with a regular expression and an object"                                          ! db(session.e8)^
+        "with a regular expression"                                                        ! session.e7^
+        "with a regular expression and an object"                                          ! session.e8^
         Step(cleanup("iDoc"))                                                              ^
-                                                                                           p^
+                                                                                           endp^
     "Documents can be created with an UUID"                                                ^
-      "created with the uuid.randomUUID method"                                            ! db(uuid.e1)^
+      "created with the uuid.randomUUID method"                                            ! uuid.e1^
                                                                                            p^
   Step(doAfterSpec)                                                                        ^
                                                                                            end
@@ -89,10 +90,6 @@ This is a tutorial on how to use MongoDB with Lift
 	  db.getCollection(name).drop
 	}
 	success
-  }
-  
-  object db extends Before {
-    def before = checkMongoIsRunning
   }
   
   object direct {
