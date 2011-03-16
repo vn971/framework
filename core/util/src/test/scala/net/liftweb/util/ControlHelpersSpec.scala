@@ -19,7 +19,7 @@ package util
 
 import org.specs2.mutable._
 import org.specs2.mock.Mockito
-import org.specs2.execute.Success
+import org.specs2.specification.Scope
 import common._
 import ControlHelpers._
 
@@ -63,7 +63,7 @@ object ControlHelpersSpec extends Specification with Mockito {
       there was no(callback).use(any[Exception])
     }
   }
-  trait CallBack extends Success {
+  trait CallBack extends Scope {
     val callback = mock[CallBack]
     def use(e: Throwable) { e }
   }

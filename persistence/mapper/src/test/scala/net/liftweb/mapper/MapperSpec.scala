@@ -21,7 +21,7 @@ import java.util.Locale
 
 import org.specs2.matcher.MustThrownMatchers
 import org.specs2.mutable._
-import org.specs2.execute.Success
+import org.specs2.specification.Scope
 import common._
 import json._
 import util._
@@ -736,7 +736,7 @@ object Dog2 extends Dog2 with LongKeyedMetaMapper[Dog2] {
     new _root_.java.util.Date(1257089309453L)
   }
 }
-class db(provider: DbProviders.Provider) extends Success with MustThrownMatchers {
+class db(provider: DbProviders.Provider) extends Scope with MustThrownMatchers {
   val doLog = false
   private def ignoreLogger(f: => AnyRef): Unit = ()
 

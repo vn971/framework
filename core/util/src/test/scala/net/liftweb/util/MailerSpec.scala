@@ -20,7 +20,7 @@ package util
 import javax.mail.internet.{MimeMessage, MimeMultipart}
 
 import org.specs2.mutable._
-import org.specs2.execute._
+import org.specs2.specification._
 
 import common._
 
@@ -31,12 +31,9 @@ import common._
 class MailerSpec extends Specification {
   "Mailer Specification".title
   sequential
-  skipAll // comment this line to pass the test only with sbt. It blocks the full suite.  
   
   "A Mailer" should {
-
     "deliver simple messages as simple messages" in new mailer {
-
       send(
         From("sender@nowhere.com"),
         Subject("This is a simple email"),
@@ -64,18 +61,24 @@ class MailerSpec extends Specification {
       ).getContent must haveClass[MimeMultipart]
     }
   }
-  implicit def anyToSuccess(a: Any): Success = success
   
-  trait mailer extends MailerImpl {
+  trait mailer extends MailerImpl with Scope {
     @volatile var lastMessage: Box[MimeMessage] = Empty
-    Props.testMode
-    testModeSend.default.set((msg: MimeMessage) => { lastMessage = Full(msg)  })
+	val lock = new Object;
+    testModeSend.default.set((msg: MimeMessage) => 
+	  lock.synchronized {
+	     lastMessage = Full(msg) 
+		 lock.notifyAll
+      })
+	  
     def send(f: From, s: Subject, bodies: MailTypes*): MimeMessage = {
-      sendMail(f, s, bodies:_*)
-      synchronized {
-        while (lastMessage.isEmpty) { wait(100) }
+      lock.synchronized {
+        sendMail(f, s, bodies:_*)
+	    while (lastMessage.isEmpty) { 
+		  lock.wait() 
+		}
         lastMessage.open_!
-      }
+	  }
     }
   }
 }

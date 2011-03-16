@@ -18,6 +18,7 @@ package net.liftweb
 package util
 
 import org.specs2.mutable._
+import org.specs2.specification._
 
 import actor._
 import Helpers._
@@ -55,7 +56,7 @@ object ScheduleSpec extends Specification with PingedService {
       service.pinged must throwAn[ActorPingException].like { case _: ActorPingException => ok }
     }.pendingUntilFixed
   }
-  trait scheduled extends org.specs2.execute.Success {
+  trait scheduled extends Scope {
     Schedule.restart
   }
 }
