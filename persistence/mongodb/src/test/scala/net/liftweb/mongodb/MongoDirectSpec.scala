@@ -30,9 +30,8 @@ import json.DefaultFormats
 /**
  * System under specification for Mongodirect.
  */
-object MongoDirectSpec extends MongoAcceptance { def is = args(sequential=true, skipAll=(!isMongoRunning))^
+object MongoDirectSpec extends MongoAcceptance { def specIs = 
   "MongoDirect Specification".title ^
-  (if (!isMongoRunning) "MongoDB is not running" else "")                                  ^end^
                                                                                            """
 This is a tutorial on how to use MongoDB with Lift
                                                                                            """^p^
@@ -75,7 +74,6 @@ This is a tutorial on how to use MongoDB with Lift
     "Documents can be created with an UUID"                                                ^
       "created with the uuid.randomUUID method"                                            ! uuid.e1^
                                                                                            p^
-  Step(doAfterSpec)                                                                        ^
                                                                                            end
 
 

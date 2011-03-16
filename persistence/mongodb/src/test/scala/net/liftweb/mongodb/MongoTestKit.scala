@@ -17,18 +17,25 @@
 package net.liftweb
 package mongodb
 
-import org.specs2.matcher._
+import org.specs2.specification._
 
 trait MongoTestKit extends MongoSetup with org.specs2.mutable.Specification {
-  override def is = args(sequential=true, skipAll=(!isMongoRunning)).overrideWith(additionalArgs) ^ super.is ^ step(doAfterSpec)
-  /** override this method to provide more arguments */
-  def additionalArgs = args()
+  override def is = setup(super.is)
 }
 
-trait MongoAcceptance extends MongoSetup with org.specs2.Specification
+trait MongoAcceptance extends MongoSetup {
+  def is = setup(specIs)
+  def specIs: Fragments           
+}  
+trait MongoSetup extends org.specs2.Specification {
 
-trait MongoSetup  extends MustMatchers {
-  
+  def setup(fs: Fragments) = args(sequential=true, skipAll=(!isMongoRunning)).overrideWith(additionalArgs) ^ 
+                             (if (!isMongoRunning) br^"MONGODB IS NOT RUNNING"^br else ("":Fragments)) ^end^
+                             fs ^ 
+                             Step(doAfterSpec)
+  /** override this method to provide more arguments */
+  def additionalArgs = args()
+
   def dbName = "lift_"+this.getClass.getName
     .replace("$", "")
     .replace("net.liftweb.mongodb.", "")
