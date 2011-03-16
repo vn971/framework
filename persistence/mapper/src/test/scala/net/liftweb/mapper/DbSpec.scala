@@ -28,6 +28,8 @@ import http.{S, LiftSession}
  * Systems under specification for DB.
  */
 object DbSpec extends Specification {
+  sequential
+
   "DB Specification".title
   
   val provider = DbProviders.H2MemoryProvider

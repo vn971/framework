@@ -34,8 +34,8 @@ import http.provider.HTTPRequest
  * Systems under specification for Mapper.
  */
 object MapperSpec extends Specification {
-  "Mapper Specification".title
   sequential
+  "Mapper Specification".title
 
   //  def providers =
   //    if (false || Props.getBool("lift.fasttest", false))

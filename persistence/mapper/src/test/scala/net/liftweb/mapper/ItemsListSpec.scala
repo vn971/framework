@@ -30,8 +30,9 @@ import view._
  * Systems under specification for ItemsList.
  */
 object ItemsListSpec extends Specification {
+  sequential
   "ItemsList Specification".title
-
+   
   val provider = DbProviders.H2MemoryProvider
 
   def init = {

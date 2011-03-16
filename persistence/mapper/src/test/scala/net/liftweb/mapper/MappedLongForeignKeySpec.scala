@@ -27,6 +27,8 @@ import util._
  * Systems under specification for MappedLongForeignKey.
  */
 object MappedLongForeignKeySpec extends Specification {
+  sequential
+
   "MappedLongForeignKey Specification".title
   
   def provider = DbProviders.H2MemoryProvider
