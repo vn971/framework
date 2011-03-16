@@ -244,7 +244,7 @@ object MongoRecordExamplesSpec extends MongoTestKit {
 
   "TstRecord example" in {
 
-    checkMongoIsRunning
+    
 
     val pwd = "test"
     val cal = Calendar.getInstance
@@ -306,8 +306,6 @@ object MongoRecordExamplesSpec extends MongoTestKit {
   }
 
   "Ref example" in {
-
-    checkMongoIsRunning
 
     val ref1 = RefDoc.createRecord
     val ref2 = RefDoc.createRecord
@@ -459,8 +457,6 @@ object MongoRecordExamplesSpec extends MongoTestKit {
   }
 
   "List example" in {
-    checkMongoIsRunning
-
     val ref1 = RefDoc.createRecord
     val ref2 = RefDoc.createRecord
 
@@ -517,8 +513,6 @@ object MongoRecordExamplesSpec extends MongoTestKit {
 
   "Map Example" in {
 
-    checkMongoIsRunning
-
     val md1 = MapDoc.createRecord
     md1.stringmap.set(Map("h" -> "hola"))
 
@@ -531,8 +525,6 @@ object MongoRecordExamplesSpec extends MongoTestKit {
   }
 
   "Optional Example" in {
-
-    checkMongoIsRunning
 
     val od1 = OptionalDoc.createRecord
     od1.stringbox.valueBox must_== Empty
@@ -559,8 +551,6 @@ object MongoRecordExamplesSpec extends MongoTestKit {
   }
 
   "Strict Example" in {
-
-    checkMongoIsRunning
 
     val sd1 = StrictDoc.createRecord.name("sd1")
     val sd2 = StrictDoc.createRecord.name("sd1")

@@ -139,7 +139,7 @@ object CustomSerializersSpec extends MongoTestKit {
 
   "CustomSerializers" should {
     "handle Date as String value in JsonObjects" in {
-      checkMongoIsRunning
+      
 
       // test data
       val bdjack = Calendar.getInstance.setTimezone(utc)
@@ -193,7 +193,7 @@ object CustomSerializersSpec extends MongoTestKit {
     }
 
     "handle Date as Date value in JsonObjects using DateSerializer" in {
-      checkMongoIsRunning
+      
 
       // test data
       val bdjack = Calendar.getInstance.setTimezone(utc)
@@ -250,7 +250,7 @@ object CustomSerializersSpec extends MongoTestKit {
     }
 
     "handle ObjectId as String value in JsonObjects" in {
-      checkMongoIsRunning
+      
 
       // test data
       val rmoss = Player.createRecord.name("Randy Moss").save
@@ -313,7 +313,7 @@ object CustomSerializersSpec extends MongoTestKit {
     }
 
     "handle ObjectId as ObjectId values in JsonObjects using ObjectIdSerializer" in {
-      checkMongoIsRunning
+      
 
       // test data
       val rmoss = Player.createRecord.name("Randy Moss").save

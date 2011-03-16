@@ -196,8 +196,6 @@ object MongoFieldSpec extends MongoTestKit {
   }
 
   "DBRefField" should {
-    checkMongoIsRunning
-    
     if (isMongoRunning) { // Even if this gets skipped, the vals still get set.
       val rec = MongoFieldTypeTestRecord.createRecord
       val dbref = DBRefTestRecord.createRecord.getRef // This makes a call to MongoDB.use and needs a MongoDB connection.

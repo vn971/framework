@@ -37,7 +37,6 @@ object MongoRecordSpec extends MongoTestKit {
   import fixtures._
 
   "MongoRecord field introspection" should {
-    checkMongoIsRunning
 
     val rec = MongoFieldTypeTestRecord.createRecord
     val allExpectedFieldNames: List[String] = "_id" :: (for {
@@ -65,7 +64,7 @@ object MongoRecordSpec extends MongoTestKit {
   }
 
   "MongoRecord lifecycle callbacks" should {
-    checkMongoIsRunning
+    
 
     def testOneHarness(scope: String, f: LifecycleTestRecord => HarnessedLifecycleCallbacks) = {
       "be called before validation when specified at " + scope ! {
@@ -166,7 +165,7 @@ object MongoRecordSpec extends MongoTestKit {
   }
 
   "MongoRecord" should {
-    checkMongoIsRunning
+    
     
     val fttr = FieldTypeTestRecord.createRecord
       //.mandatoryBinaryField()
@@ -211,7 +210,7 @@ object MongoRecordSpec extends MongoTestKit {
     val mjson = "{\"mandatoryStringMapField\":{\"a\":\"abc\",\"b\":\"def\",\"c\":\"ghi\"},\"legacyOptionalStringMapField\":{},\"mandatoryIntMapField\":{\"a\":4,\"b\":5,\"c\":6},\"legacyOptionalIntMapField\":{},\"_id\":{\"$oid\":\""+mtr.id.toString+"\"}}"
 
     "save and retrieve 'standard' type fields" in {
-      checkMongoIsRunning
+      
 
       fttr.save
 
@@ -224,7 +223,7 @@ object MongoRecordSpec extends MongoTestKit {
     }
 
     "save and retrieve Mongo type fields" in {
-      checkMongoIsRunning
+      
 
       mfttr.save
 
@@ -255,7 +254,7 @@ object MongoRecordSpec extends MongoTestKit {
     }
 
     "convert Mongo type fields to JValue" in {
-      checkMongoIsRunning
+      
 
       mfttr.asJValue must_== JObject(List(
         JField("_id", JObject(List(JField("$oid", JString(mfttr.id.toString))))),
@@ -308,7 +307,7 @@ object MongoRecordSpec extends MongoTestKit {
     }
     
     "convert Mongo type fields to JsExp" in {
-      checkMongoIsRunning
+      
 
       /*
       mfttr.asJsExp must_== JsObj(
@@ -361,7 +360,7 @@ object MongoRecordSpec extends MongoTestKit {
     }
 
     "get set from json string using lift-json parser" in {
-      checkMongoIsRunning
+      
 
       val mfftrFromJson = MongoFieldTypeTestRecord.fromJsonString(json)
       mfftrFromJson must not be empty
@@ -384,7 +383,7 @@ object MongoRecordSpec extends MongoTestKit {
     }
 
     "handle null" in {
-      checkMongoIsRunning
+      
 
       val ntr = NullTestRecord.createRecord
       ntr.nullstring.set(null)
@@ -416,7 +415,7 @@ object MongoRecordSpec extends MongoTestKit {
     }
 
     "handle Box using JsonBoxSerializer" in {
-      checkMongoIsRunning
+      
       
       val btr = BoxTestRecord.createRecord
       btr.jsonobjlist.set(

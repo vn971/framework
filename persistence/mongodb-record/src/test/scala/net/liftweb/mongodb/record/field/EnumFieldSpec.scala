@@ -75,8 +75,6 @@ object EnumFieldSpec extends MongoTestKit {
   "EnumField" should {
 
     "work with default values" in {
-      checkMongoIsRunning
-
       val er = EnumRec.createRecord.save
 
       val erFromDb = EnumRec.find(er.id)
@@ -91,8 +89,6 @@ object EnumFieldSpec extends MongoTestKit {
     }
 
     "work with set values" in {
-      checkMongoIsRunning
-
       val er = EnumRec.createRecord
         .dow(WeekDay.Tue)
         .jsonobj(JsonObj(WeekDay.Sun))
@@ -109,8 +105,6 @@ object EnumFieldSpec extends MongoTestKit {
     }
 
     "work with Empty optional values" in {
-      checkMongoIsRunning
-
       val er = EnumRec.createRecord
       er.dowOptional.setBox(Empty)
       er.save
@@ -125,8 +119,6 @@ object EnumFieldSpec extends MongoTestKit {
     }
 
     "work with Full optional values" in {
-      checkMongoIsRunning
-
       val er = EnumRec.createRecord
       er.dowOptional.setBox(Full(WeekDay.Sat))
       er.save

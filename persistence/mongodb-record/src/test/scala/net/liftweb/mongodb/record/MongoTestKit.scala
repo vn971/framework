@@ -14,65 +14,57 @@
  * limitations under the License.
  */
 
-package net.liftweb 
-package mongodb 
-package record 
+package net.liftweb
+package mongodb
+package record
 
-import org.specs2.mutable._
+import org.specs2.specification._
 
-import com.mongodb._
+trait MongoTestKit extends MongoSetup with org.specs2.mutable.Specification {
+  override def is = setup(super.is)
+}
 
-trait MongoTestKit extends Specification {
-  override def is = step(doBeforeSpec) ^ super.is ^ step(doAfterSpec)
-  
-  def dbName = "lift_record_"+this.getClass.getName
+trait MongoAcceptance extends MongoSetup {
+  def is = setup(specIs)
+  def specIs: Fragments           
+}  
+trait MongoSetup extends org.specs2.Specification {
+
+  def setup(fs: Fragments) = args(sequential=true, skipAll=(!isMongoRunning)).overrideWith(additionalArgs) ^ 
+                             (if (!isMongoRunning) br^"MONGODB IS NOT RUNNING"^br else ("":Fragments)) ^end^
+                             fs ^ 
+                             Step(doAfterSpec)
+  /** override this method to provide more arguments */
+  def additionalArgs = args()
+
+  def dbName = "lift_"+this.getClass.getName
     .replace("$", "")
-    .replace("net.liftweb.mongodb.record.", "")
+    .replace("net.liftweb.mongodb.", "")
     .replace(".", "_")
     .toLowerCase
 
-  val defaultHost = MongoHost("127.0.0.1", 27017)
+  def defaultHost = MongoHost("127.0.0.1", 27017)
 
   // If you need more than one db, override this
-  def dbs: List[(MongoIdentifier, MongoHost, String)] = 
-    List((DefaultMongoIdentifier, defaultHost, dbName))
+  def dbs: List[(MongoIdentifier, MongoHost, String)] = List((DefaultMongoIdentifier, defaultHost, dbName))
 
   def debug = false
-
-  def doBeforeSpec = {
-    // define the dbs
-    dbs foreach { dbtuple =>
-      MongoDB.defineDb(dbtuple._1, MongoAddress(dbtuple._2, dbtuple._3))
-    }
-  }
-
-  def isMongoRunning: Boolean =
+   
+  lazy val isMongoRunning: Boolean = {
+    dbs foreach { dbtuple => MongoDB.defineDb(dbtuple._1, MongoAddress(dbtuple._2, dbtuple._3)) }
     try {
-      if (dbs.length < 1)
-        false
-      else {
-        dbs foreach { dbtuple =>
-          MongoDB.use(dbtuple._1) ( db => { db.getLastError } )
-        }
-        true
-      }
-    } catch {
-      case _ => false
-    }
-
-  def checkMongoIsRunning =
-    isMongoRunning must beEqualTo(true).orSkip
-
+      if (dbs.isEmpty) false
+      else dbs exists { dbtuple => MongoDB.use(dbtuple._1)(db => true) }
+    } catch { case e: Exception => false }
+  }
+  
   def doAfterSpec = {
     if (!debug && isMongoRunning) {
       // drop the databases
-      dbs foreach { dbtuple =>
-        MongoDB.use(dbtuple._1) { db => db.dropDatabase }
-      }
+      dbs foreach { dbtuple => MongoDB.use(dbtuple._1) { db => db.dropDatabase } }
     }
-
     // clear the mongo instances
-    MongoDB.close
+    if (isMongoRunning) MongoDB.close
   }
 }
 
