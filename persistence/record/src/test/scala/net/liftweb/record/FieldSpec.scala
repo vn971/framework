@@ -31,6 +31,7 @@ import java.util.Calendar
 import scala.xml.{Node, Text}
 
 import org.specs2.mutable._
+import org.specs2.specification._
 
 import fixtures._
 
@@ -422,37 +423,35 @@ object FieldSpec extends Specification {
     }
 
     "support filtering" in {
-      val rec = FilterTestRecord.createRecord
-      val field = rec.stringFieldWithFiltering
 
-      "which does nothing" in {
+      "which does nothing" in new filter {
         field.set("foobar")
         field.value must_== "foobar"
         field.valueBox must_== Full("foobar")
       }
 
-      "which trims the input at the value level" in {
+      "which trims the input at the value level" in new filter {
         field.setFilterHarness = _.trim
         field.set("  foobar  ")
         field.value must_== "foobar"
         field.valueBox must_== Full("foobar")
       }
 
-      "which trims the input at the box level" in {
+      "which trims the input at the box level" in new filter {
         field.setFilterBoxHarness = _.map(_.trim)
         field.set("   foobar   ")
         field.value must_== "foobar"
         field.valueBox must_== Full("foobar")
       }
 
-      "which Empties the box" in {
+      "which Empties the box" in new filter {
         field.setFilterBoxHarness = s => Empty
         field.set("foobar")
         field.value must_== field.defaultValue
         field.valueBox must_== Empty
       }
 
-      "which Fails" in {
+      "which Fails" in new filter {
         field.setFilterBoxHarness = s => Failure("my failure")
         field.set("foobar")
         field.value must_== field.defaultValue
@@ -490,8 +489,11 @@ object FieldSpec extends Specification {
     )
   }
 }
-trait validation {
+trait validation extends Scope {
   val rec = ValidationTestRecord.createRecord
   val field = rec.stringFieldWithValidation
 }
-
+trait filter extends Scope {
+  val rec = FilterTestRecord.createRecord
+  val field = rec.stringFieldWithFiltering
+}
