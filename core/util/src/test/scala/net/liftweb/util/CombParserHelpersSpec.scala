@@ -20,6 +20,7 @@ package util
 import scala.util.parsing.combinator.Parsers
 
 import org.specs2.mutable._
+import org.specs2.matcher._
 import org.specs2.ScalaCheck
 import org.scalacheck.{Arbitrary, Gen, Prop}
 import scala.collection.immutable._
@@ -27,9 +28,12 @@ import Gen._
 import Prop._
 object ParserHelpers extends CombParserHelpers with Parsers
 
-object CombParserHelpersSpec extends Specification with ScalaCheck {
+object CombParserHelpersSpec extends Specification with ScalaCheck with ParserMatchers {
  "CombParserHelpers Specification".title
-
+  val parsers = ParserHelpers
+  /** bypass this implicit from the ParserMatchers trait */
+  override def useStringsAsInput(s:String) = super.useStringsAsInput(s)
+  def equalString[T](s: String) = new BeEqualTo(s) ^^ ((_:T).toString)
   import ParserHelpers._
 
   "The parser helpers" should {
@@ -51,58 +55,56 @@ object CombParserHelpersSpec extends Specification with ScalaCheck {
     }
     "provide a whitespace parser: white. Alias: wsc" in checkProp { 
 	    import WhiteStringGen._
-	    (s: String) => wsc(s) must beLike { case Success(_, _) => ok } 
+	    (s: String) => wsc(s) must beASuccess
 	  }
     "provide a whiteSpace parser always succeeding and discarding its result" in checkProp { 
 	    import StringWithWhiteGen._
-	    (s: String) => whiteSpace(s) must beLike { case Success(x, y) => x.toString must be_==("()") }
+	    (s: String) => whiteSpace must succeedOn(s).withResult(equalString("()"))
     }
     "provide an acceptCI parser to parse whatever string matching another string ignoring case" in check { 
       implicit def abcd = Arbitrary { AbcdStringGen.abcdString }
-	    (s: String, s2: String) => acceptCI(s).apply(s2) must beLike { case Success(x, y) => s2.toUpperCase must startWith(s.toUpperCase); case _ => ok }
+	    (s: String, s2: String) => (acceptCI(s).apply(s2) must beASuccess.iff(s2.toUpperCase startsWith s.toUpperCase))
     }
     "provide a digit parser - returning a String" in check { (s: String) => 
-      digit(s) must beLike { case Success(x, y) => x.toString must beMatching("\\p{Nd}"); case _ => ok }
+      digit(s) must haveSuccessResult("\\p{Nd}")
     }
     "provide an aNumber parser - returning an Int if succeeding" in check { (s: String) =>
-      aNumber(s) must beLike { case Success(x, y) => x.toString must beMatching("\\p{Nd}+"); case _ => ok }
+      aNumber(s) must haveSuccessResult("\\p{Nd}+")
     }
     "provide a slash parser" in {
-      slash("/").get must_== '/'
-      slash("x") must beLike {case Failure(_, _) => ok}
+      slash("/") must beASuccess.withResult(equalString("/"))
+      slash("x") must beAFailure
     }
     "provide a colon parser" in {
-      colon(":").get must_== ':'
-      colon("x") must beLike {case Failure(_, _) => ok}
+      colon(":") must beASuccess.withResult(equalString(":"))
+      colon("x") must beAFailure
     }
     "provide a EOL parser which parses the any and discards any end of line character" in {
       List("\n", "\r") foreach {
         s =>
-          val result = EOL(s)
-          result.get.toString must_== "()"
-          result.next.atEnd must beTrue
+          EOL(s) must beASuccess.withResult(equalString("()"))
+          EOL(s).next.atEnd must beTrue
       }
-	    success
+	  success
     }
     val parserA = elem("a", (c: Char) => c == 'a')
     val parserB = elem("b", (c: Char) => c == 'b')
     val parserC = elem("c", (c: Char) => c == 'c')
     val parserD = elem("d", (c: Char) => c == 'd')
-    def shouldSucceed[T](r: ParseResult[T]) = r must beLike { case Success(_, _) => ok; case _ => ko }
 	
     "provide a permute parser succeeding if any permutation of given parsers succeeds" in checkProp { 
       implicit def abcd = Arbitrary { AbcdStringGen.abcdString }
-	    (s: String) => shouldSucceed(permute(parserA, parserB, parserC, parserD)(s))
+	  (s: String) => permute(parserA, parserB, parserC, parserD) must succeedOn(s)
     }
 	  
     val notEmpty = forAll(!new StringOps(_:String).isEmpty)
     "provide a permuteAll parser succeeding if any permutation of the list given parsers, or a sublist of the given parsers succeeds" in checkProp {
       implicit def pick3Letters = AbcdStringGen.pickN(3, List("a", "b", "c"))
-      notEmpty ==> { (s:String) => shouldSucceed(permuteAll(parserA, parserB, parserC, parserD)(s)) }
+      notEmpty ==> { (s:String) => permuteAll(parserA, parserB, parserC, parserD) must succeedOn(s) }
     }
     "provide a repNN parser succeeding if an input can be parsed n times with a parser" in checkProp {
       implicit def pick3Letters = AbcdStringGen.pickN(3, List("a", "a", "a"))
-      notEmpty ==> { (s:String) => shouldSucceed(repNN(3, parserA)(s)) }
+      notEmpty ==> { (s:String) => repNN(3, parserA) must succeedOn(s) }
     }
   }
 }
