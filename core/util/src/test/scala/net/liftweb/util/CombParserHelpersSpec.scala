@@ -31,9 +31,11 @@ object ParserHelpers extends CombParserHelpers with Parsers
 object CombParserHelpersSpec extends Specification with ScalaCheck with ParserMatchers {
  "CombParserHelpers Specification".title
   val parsers = ParserHelpers
+
   /** bypass this implicit from the ParserMatchers trait */
   override def useStringsAsInput(s:String) = super.useStringsAsInput(s)
   def equalString[T](s: String) = new BeEqualTo(s) ^^ ((_:T).toString)
+
   import ParserHelpers._
 
   "The parser helpers" should {
@@ -54,16 +56,16 @@ object CombParserHelpersSpec extends Specification with ScalaCheck with ParserMa
       wsc('a') must beFalse
     }
     "provide a whitespace parser: white. Alias: wsc" in checkProp { 
-	    import WhiteStringGen._
-	    (s: String) => wsc(s) must beASuccess
-	  }
+      import WhiteStringGen._
+      (s: String) => wsc(s) must beASuccess
+    }
     "provide a whiteSpace parser always succeeding and discarding its result" in checkProp { 
-	    import StringWithWhiteGen._
-	    (s: String) => whiteSpace must succeedOn(s).withResult(equalString("()"))
+      import StringWithWhiteGen._
+      (s: String) => whiteSpace must succeedOn(s).withResult(equalString("()"))
     }
     "provide an acceptCI parser to parse whatever string matching another string ignoring case" in check { 
       implicit def abcd = Arbitrary { AbcdStringGen.abcdString }
-	    (s: String, s2: String) => (acceptCI(s).apply(s2) must beASuccess.iff(s2.toUpperCase startsWith s.toUpperCase))
+      (s: String, s2: String) => (acceptCI(s).apply(s2) must beASuccess.iff(s2.toUpperCase startsWith s.toUpperCase))
     }
     "provide a digit parser - returning a String" in check { (s: String) => 
       digit(s) must haveSuccessResult("\\p{Nd}")
@@ -80,12 +82,11 @@ object CombParserHelpersSpec extends Specification with ScalaCheck with ParserMa
       colon("x") must beAFailure
     }
     "provide a EOL parser which parses the any and discards any end of line character" in {
-      List("\n", "\r") foreach {
-        s =>
-          EOL(s) must beASuccess.withResult(equalString("()"))
-          EOL(s).next.atEnd must beTrue
+      List("\n", "\r") foreach { s =>
+        EOL(s) must beASuccess.withResult(equalString("()"))
+        EOL(s).next.atEnd must beTrue
       }
-	  success
+      success
     }
     val parserA = elem("a", (c: Char) => c == 'a')
     val parserB = elem("b", (c: Char) => c == 'b')
@@ -94,7 +95,7 @@ object CombParserHelpersSpec extends Specification with ScalaCheck with ParserMa
 	
     "provide a permute parser succeeding if any permutation of given parsers succeeds" in checkProp { 
       implicit def abcd = Arbitrary { AbcdStringGen.abcdString }
-	  (s: String) => permute(parserA, parserB, parserC, parserD) must succeedOn(s)
+      (s: String) => permute(parserA, parserB, parserC, parserD) must succeedOn(s)
     }
 	  
     val notEmpty = forAll(!new StringOps(_:String).isEmpty)
