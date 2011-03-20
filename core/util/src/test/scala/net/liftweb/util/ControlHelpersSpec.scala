@@ -17,8 +17,9 @@
 package net.liftweb
 package util
 
-import org.specs.Specification
-
+import org.specs2.mutable._
+import org.specs2.mock.Mockito
+import org.specs2.specification.Scope
 import common._
 import ControlHelpers._
 
@@ -26,8 +27,9 @@ import ControlHelpers._
 /**
  * Systems under specification for ControlHelpers.
  */
-object ControlHelpersSpec extends Specification("ControlHelpers Specification") {
-
+object ControlHelpersSpec extends Specification with Mockito {
+  "ControlHelpers Specification".title
+  
   "the tryo function" should {
     "return a Full can if the tested block doesn't throw an exception" in {
       tryo { "valid" } must_== Full("valid")
@@ -44,22 +46,26 @@ object ControlHelpersSpec extends Specification("ControlHelpers Specification") 
     "return Empty if the tested block throws an exception whose class is in the ignore list - with 2 elements" in {
       tryo(List(classOf[RuntimeException], classOf[NullPointerException])) { failureBlock } must_== Empty
     }
-    "trigger a callback function with the exception if the tested block throws an exception" in {
-      val callback = (e: Throwable) => { e must_== exception; () }
-      tryo(callback) { failureBlock }
+    "trigger a callback function with the exception if the tested block throws an exception" in new CallBack {
+      tryo(callback.use(_:Throwable)) { failureBlock }
+      there was one(callback).use(any[Exception])
     }
-    "trigger a callback function with the exception if the tested block throws an exception even if it is ignored" in {
-      val callback = (e: Throwable) => { e must_== exception; () }
-      tryo(List(classOf[RuntimeException]), Full(callback)) { failureBlock }
+    "trigger a callback function with the exception if the tested block throws an exception even if it is ignored" in new CallBack {
+      tryo(List(classOf[RuntimeException]), Full(callback.use(_:Throwable))) { failureBlock }
+      there was one(callback).use(any[Exception])
     }
-    "don't trigger a callback if the tested block doesn't throw an exception" in {
-      val callback = (e: Throwable) => { fail("must not be called") }
-      tryo(callback) { "valid" }
+    "don't trigger a callback if the tested block doesn't throw an exception" in new CallBack {
+      tryo(callback.use(_:Throwable)) { "valid" }
+      there was no(callback).use(any[Exception])
     }
-    "don't trigger a callback if the tested block doesn't throw an exception, even with an ignore list" in {
-      val callback = (e: Throwable) => { fail("must not be called") }
-      tryo(List(classOf[RuntimeException]), Full(callback)) { "valid" }
+    "don't trigger a callback if the tested block doesn't throw an exception, even with an ignore list" in new CallBack {
+      tryo(List(classOf[RuntimeException]), Full(callback.use(_:Throwable))) { "valid" }
+      there was no(callback).use(any[Exception])
     }
+  }
+  trait CallBack extends Scope {
+    val callback = mock[CallBack]
+    def use(e: Throwable) { e }
   }
 }
 

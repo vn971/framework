@@ -18,33 +18,30 @@ import java.net.ConnectException
 
 import dispatch.{Http, StatusCode}
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 
 /**
  * Systems under specification for CouchDatabase.
  */
-object CouchDatabaseSpec extends Specification("CouchDatabase Specification") {
+object CouchDatabaseSpec extends Specification { 
+  "CouchDatabase Specification".title
   def setup = {
     val http = new Http
     val database = new Database("test")
-    (try { http(database delete) } catch { case StatusCode(_, _) => () }) must not(throwAnException[ConnectException]).orSkipExample
-
+    http(database delete) must not(throwA[ConnectException]).orSkip
     (http, database)
   }
 
   "A database" should {
     "give 404 when info called and nonexistant" in {
-      setup
       val (http, database) = setup
-
-      http(database info) must throwAnException[StatusCode].like { case StatusCode(404, _) => true }
+      http(database info) must throwA[StatusCode].like { case StatusCode(404, _) => ok }
     }
 
     "give 404 when deleted but nonexistant" in {
       val (http, database) = setup
-
-      http(database delete) must throwAnException[StatusCode].like { case StatusCode(404, _) => true }
+      http(database delete) must throwA[StatusCode].like { case StatusCode(404, _) => ok }
     }
 
     "succeed being created" in {
@@ -57,7 +54,7 @@ object CouchDatabaseSpec extends Specification("CouchDatabase Specification") {
       val (http, database) = setup
 
       http(database create) must_== ()
-      http(database create) must throwAnException[StatusCode].like { case StatusCode(412, _) => true }
+      http(database create) must throwA[StatusCode].like { case StatusCode(412, _) => ok }
     }
     
     "have info when created" in {

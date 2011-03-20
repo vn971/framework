@@ -19,7 +19,7 @@ package webapptest
 
 import java.net.{URL, InetAddress}
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import common.Full
 import util._
@@ -29,7 +29,9 @@ import Helpers.tryo
 /**
  * System under specification for ToHeadUsages.
  */
-object ToHeadUsages extends Specification("ToHeadUsages Specification") {
+object ToHeadUsages extends Specification {
+  "ToHeadUsages Specification".title
+  sequential
 
   private def reachableLocalAddress = {
     val l = InetAddress.getLocalHost
@@ -46,17 +48,16 @@ object ToHeadUsages extends Specification("ToHeadUsages Specification") {
 
   private lazy val jetty = new JettyTestServer(Full(baseUrl_))
 
-  doBeforeSpec(jetty.start())
+  step(jetty.start())
 
   "lift <head> merger" should {
-
-    setSequential()
 
     "merge <head> from html fragment" in {
       jetty.browse(
         "/htmlFragmentWithHead", html =>
-         html.getElementByXPath("/html/head/script[@id='fromFrag']") must notBeNull.when(jetty.running)
+         html.getElementByXPath("/html/head/script[@id='fromFrag']") must beNull.not.when(jetty.running)
       )
+      success
     }
 
     "merge <head> from html fragment does not include head element in body" in {
@@ -64,30 +65,34 @@ object ToHeadUsages extends Specification("ToHeadUsages Specification") {
         "/htmlFragmentWithHead", html =>
          html.getElementsByXPath("/html/body/script[@id='fromFrag']").size must be_==(0).when(jetty.running)
       )
+      success
     }
 
     "merge <head> from snippet" in {
       jetty.browse(
         "/htmlSnippetWithHead", html =>
-         html.getElementByXPath("/html/head/script[@src='snippet.js']") must notBeNull.when(jetty.running)
+         html.getElementByXPath("/html/head/script[@src='snippet.js']") must beNull.not.when(jetty.running)
       )
+      success
     }
 
     "not merge for bodyless html" in {
       jetty.browse(
         "/basicDiv",html => {
-          html.getElementById("fruit") must notBeNull.when(jetty.running)
-          html.getElementById("bat")   must notBeNull.when(jetty.running)
+          html.getElementById("fruit") must beNull.not.when(jetty.running)
+          html.getElementById("bat")   must beNull.not.when(jetty.running)
         }
       )
+      success
     }
 
     "not merge for headless bodyless html" in {
       jetty.browse(
         "/h1",html => {
-          html.getElementById("h1") must notBeNull.when(jetty.running)
+          html.getElementById("h1") must beNull.not.when(jetty.running)
         }
       )
+      success
     }
 
     "not merge for headless body html" in {
@@ -99,21 +104,21 @@ object ToHeadUsages extends Specification("ToHeadUsages Specification") {
           html.getElementsByXPath("/html/body//div").size must be_==(1).when(jetty.running)
         }
       )
+      success
     }
 
     "not merge non-html" in {
       jetty.browse(
         "/non_html",html => {
-          html.getElementById("frog") must notBeNull.when(jetty.running)
+          html.getElementById("frog") must beNull.not.when(jetty.running)
         }
       )
+      success
     }
 
   }
 
   "pages " should {
-
-    setSequential()
 
     "Template finder should recognize entities" in {
       val ns = TemplateFinder.findAnyTemplate(List("index")).open_!
@@ -145,30 +150,31 @@ object ToHeadUsages extends Specification("ToHeadUsages Specification") {
 
   "deferred snippets" should {
 
-    setSequential()
-
     "render" in {
       jetty.browse(
         "/deferred",html => {
-          html.getElementById("second") must notBeNull.when(jetty.running)
+          html.getElementById("second") must beNull.not.when(jetty.running)
         }
       )
+      success
     }
 
     "not deferred not in actor" in {
       jetty.browse(
         "/deferred",html => {
-          html.getElementByXPath("/html/body/span[@id='whack1']/span[@id='actor_false']") must notBeNull.when(jetty.running)
+          html.getElementByXPath("/html/body/span[@id='whack1']/span[@id='actor_false']") must beNull.not.unless(jetty.running)
         }
       )
+      success
     }
 
     "deferred in actor" in {
       jetty.browse(
         "/deferred",html => {
-          html.getElementByXPath("/html/body/span[@id='whack2']/span[@id='actor_true']") must notBeNull.when(jetty.running)
+          html.getElementByXPath("/html/body/span[@id='whack2']/span[@id='actor_true']") must beNull.not.when(jetty.running)
         }
       )
+      success
     }
 
     "Exclude from context rewriting" in {
@@ -197,7 +203,7 @@ object ToHeadUsages extends Specification("ToHeadUsages Specification") {
     }
   }
 
-  doAfterSpec {
+  step {
     tryo {
       jetty.stop()
     }

@@ -17,8 +17,8 @@
 package net.liftweb
 package util
 
-import org.specs.Specification
-import org.specs.specification.PendingUntilFixed
+import org.specs2.mutable._
+import org.specs2.specification._
 
 import actor._
 import Helpers._
@@ -27,38 +27,38 @@ import Helpers._
 /**
  * Systems under specification for Lift Schedule.
  */
-object ScheduleSpec extends Specification("Schedule Specification") with PendingUntilFixed with PingedService {
+object ScheduleSpec extends Specification with PingedService {
+  "Schedule Specification".title
 
   "The Schedule object" should {
 
-    doBefore { Schedule.restart }
-
-    "provide a schedule method to ping an actor regularly" in {
+    "provide a schedule method to ping an actor regularly" in new scheduled {
       Schedule.schedule(service, Alive, TimeSpan(10))
       service.pinged must eventually(beTrue)
     }
-    "honor multiple restarts" in {
+    "honor multiple restarts" in new scheduled {
       Schedule.restart
       Schedule.restart
       Schedule.restart
       Schedule.schedule(service, Alive, TimeSpan(10))
       service.pinged must eventually(beTrue)
     }
-    "honor shutdown followed by restart" in {
+    "honor shutdown followed by restart" in new scheduled {
       Schedule.shutdown
       Schedule.restart
       Schedule.schedule(service, Alive, TimeSpan(10))
       service.pinged must eventually(beTrue)
     }
-    "not honor multiple shutdowns" in {
+    "not honor multiple shutdowns" in new scheduled {
       Schedule.shutdown
       Schedule.shutdown
 //      service.pinged must eventually(beFalse)
-      service.pinged must throwAnException[ActorPingException].like
-      { case _: ActorPingException => true }
-    } pendingUntilFixed
+      service.pinged must throwAn[ActorPingException].like { case _: ActorPingException => ok }
+    }.pendingUntilFixed
   }
-
+  trait scheduled extends Scope {
+    Schedule.restart
+  }
 }
 
 

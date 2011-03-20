@@ -67,8 +67,9 @@ object WebSpecSpecRest extends RestHelper  {
 // TODO : Uncomment this code when LiftRules can be scoped
 //object WebSpecSpec extends WebSpec(WebSpecSpecBoot.boot _, true) {
 object WebSpecSpec extends WebSpec {
+  sequential
+  
   "WebSpec" should {
-    setSequential() // This is important for using SessionVars, etc.
 
     val testUrl = "http://foo.com/test/stateless"
 
@@ -83,11 +84,10 @@ object WebSpecSpec extends WebSpec {
     object TestVar extends SessionVar[String]("Empty")
 
     "properly set up S with a String url" withSFor(testUrl) in {
-      S.request match {
+      S.request must beLike {
 // TODO : Uncomment this code when LiftRules can be scoped
 //        case Full(req) => req.path.partPath must_== List("stateless", "works")
         case Full(req) => req.path.partPath must_== List("test", "stateless")
-        case _ => fail("No request in S")
       }
     }
 
@@ -123,9 +123,8 @@ object WebSpecSpec extends WebSpec {
       req =>
         req.contentType must_== Full("text/plain")
         req.post_? must_== true
-        req.body match {
+        req.body must beLike {
           case Full(body) => (new String(body)) must_== "This is a test"
-          case _ => fail("No body set")
         }
     }
 
@@ -133,20 +132,18 @@ object WebSpecSpec extends WebSpec {
       req =>
         req.json_? must_== true
         req.put_? must_== true
-        req.json match {
+        req.json must beLike {
           case Full(jval) => jval must_== JObject(List(JField("name", JString("Joe"))))
-          case _ => fail("No body set")
         }
     }
 
     "properly set an XML body" withSFor(testUrl) withPost(<test/>) in {
-      S.request match {
+      S.request must beLike {
         case Full(req) => {
           req.xml_? must_== true
           req.post_? must_== true
           req.xml must_== Full(<test/>)
         }
-        case _ => fail("No request found in S")
       }
     }
 
@@ -155,10 +152,7 @@ object WebSpecSpec extends WebSpec {
     }
 
     "process a JSON RestHelper Request" withReqFor("http://foo.com/api/info.json") in { req =>
-      (WebSpecSpecRest(req)() match {
-        case Full(JsonResponse(_, _, _, 200)) => true
-        case other => fail("Invalid response : " + other); false
-      }) must_== true
+      WebSpecSpecRest(req)() must beLike { case Full(JsonResponse(_, _, _, 200)) => ok  }
     }
   }
 }

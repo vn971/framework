@@ -17,7 +17,7 @@
 package net.liftweb
 package mongodb
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import common._
 import json.ext.JsonBoxSerializer
@@ -75,14 +75,13 @@ package mongodocumentspecs {
 /**
  * System under specification for MongoDocument
  */
-object MongoDocumentSpec extends Specification("MongoDocument Specification") with MongoTestKit {
-
+object MongoDocumentSpec extends MongoTestKit {
+  import mongodocumentspecs._
+  "MongoDocument Specification".title
+  
   "MongoDocument" should {
 
     "handle primitives" in {
-      checkMongoIsRunning
-      import mongodocumentspecs._
-
       val primitives = Primitives(
         "1",
         "This is a String",
@@ -104,56 +103,32 @@ object MongoDocumentSpec extends Specification("MongoDocument Specification") wi
       )
 
       primitives.save
-
       val pFromDb = Primitives.find(primitives._id)
-
       pFromDb.isDefined must_== true
-
       pFromDb.get must_== primitives
     }
 
     "handle null" in {
-      checkMongoIsRunning
-      import mongodocumentspecs._
-
       val ntd = NullTestDoc("1", null, NullTestEmbed(null))
-
       ntd.save
-
       val ntdFromDb = NullTestDoc.find(ntd._id)
-
       ntdFromDb.isDefined must_== true
-
       ntdFromDb.get must_== ntd
     }
 
     "handle Option" in {
-      checkMongoIsRunning
-      import mongodocumentspecs._
-
       val otd = OptionTestDoc("1", None, Some("Some String"))
-
       otd.save
-
       val otdFromDb = OptionTestDoc.find(otd._id)
-
       otdFromDb.isDefined must_== true
-
       otdFromDb.get must_== otd
     }
 
     "handle Box using JsonBoxSerializer" in {
-      checkMongoIsRunning
-      import mongodocumentspecs._
-
       val btd = BoxTestDoc("1", Empty, Full("Full String"), Failure("This is a failure"))
-
       btd.save
-
       val btdFromDb = BoxTestDoc.find(btd._id)
-
       btdFromDb.isDefined must_== true
-
       btdFromDb.get must_== btd
     }
   }

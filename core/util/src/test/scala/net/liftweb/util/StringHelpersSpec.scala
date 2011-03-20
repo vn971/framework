@@ -17,8 +17,10 @@
 package net.liftweb
 package util
 
-import org.specs.{ScalaCheck, Specification}
+import org.specs2.mutable._
+import org.specs2.ScalaCheck
 import org.scalacheck.Gen._
+import org.scalacheck.{Arbitrary, Prop}
 
 import StringHelpers._
 
@@ -26,7 +28,8 @@ import StringHelpers._
 /**
  * Systems under specification for StringHelpers.
  */
-object StringHelpersSpec extends Specification("StringHelpers Specification") with ScalaCheck with StringGen {
+object StringHelpersSpec extends Specification with ScalaCheck {
+  "StringHelpers Specification".title
 
   "The snakify function" should {
     "replace upper case with underscore" in {
@@ -62,9 +65,11 @@ object StringHelpersSpec extends Specification("StringHelpers Specification") wi
       def underscoresNumber(name: String, i: Int) = if (i == 0) 0 else name.substring(0, i).toList.count(_ == '_')
       def correspondingIndexInCamelCase(name: String, i: Int) = i - underscoresNumber(name, i)
       def correspondingCharInCamelCase(name: String, i: Int): Char = camelify(name).charAt(correspondingIndexInCamelCase(name, i))
-
-      val doesntContainUnderscores = forAllProp(underscoredStrings)((name: String) => !camelify(name).contains("_"))
-      val isCamelCased = forAllProp(underscoredStrings) ((name: String) => {
+      
+      implicit val underscoredStrings = StringGen.underscoredStrings
+      
+      val doesntContainUnderscores: Prop = (name: String) => camelify(name) must not contain("_")
+      val isCamelCased = (name: String) => {
         name.forall(_ == '_') && camelify(name).isEmpty ||
         name.toList.zipWithIndex.forall { case (c, i) =>
           c == '_' ||
@@ -72,26 +77,23 @@ object StringHelpersSpec extends Specification("StringHelpers Specification") wi
           !previousCharacterIsUnderscore(name, i) && correspondingCharInCamelCase(name, i) == c ||
           previousCharacterIsUnderscore(name, i) && correspondingCharInCamelCase(name, i) == c.toUpper
        }
-      })
-      doesntContainUnderscores && isCamelCased must pass
+      }
+      doesntContainUnderscores && isCamelCased.forAll
     }
     "return an empty string if given null" in {
       camelify(null) must_== ""
     }
-    "leave a CamelCased name untouched" in {
-      val camelCasedNameDoesntChange = forAllProp(camelCasedStrings){ (name: String) => camelify(name) == name }
-      camelCasedNameDoesntChange must pass
+    "leave a CamelCased name untouched" in checkProp {
+      implicit def camelCasedStrings = StringGen.camelCasedStrings
+      (name: String) => camelify(name) must_== name
     }
   }
 
   "The camelifyMethod function" should {
-    "camelCase a name with the first letter being lower cased" in {
-      val camelCasedMethodIsCamelCaseWithLowerCase = forAllProp(underscoredStrings){
-        (name: String) =>
-        camelify(name).isEmpty && camelifyMethod(name).isEmpty ||
-        camelifyMethod(name).toList.head.isLower && camelify(name) == camelifyMethod(name).capitalize
-      }
-      camelCasedMethodIsCamelCaseWithLowerCase must pass
+    "camelCase a name with the first letter being lower cased" in checkProp {
+      implicit val underscoredStrings = StringGen.underscoredStrings
+      val isEmpty = (s:String) => camelify(s).isEmpty || camelifyMethod(s).isEmpty
+      isEmpty.forAll || ((name: String) => camelifyMethod(name).toList.headOption.map(_.isLower).getOrElse(true) && camelify(name) == camelifyMethod(name).capitalize).forAll
     }
   }
 
@@ -317,19 +319,21 @@ object StringHelpersSpec extends Specification("StringHelpers Specification") wi
 }
 
 
-trait StringGen {
-  val underscoredStrings =
+object StringGen {
+  val underscoredStrings = Arbitrary {
     for {
       length <- choose(0, 4)
       s <- listOfN(length, frequency((3, alphaChar), (1, oneOf(List('_')))))
     } yield s.mkString
-
-  val camelCasedStrings =
+  }
+  
+  val camelCasedStrings = Arbitrary {
     for {
       length <- choose(0, 4)
       firstLetter <- alphaNumChar.map(_.toUpper)
       string <- listOfN(length, frequency((3, alphaNumChar.map(_.toLower)),
                                           (1, alphaNumChar.map(_.toUpper))))
-  } yield (firstLetter :: string).mkString
+    } yield (firstLetter :: string).mkString
+  }
 }
 

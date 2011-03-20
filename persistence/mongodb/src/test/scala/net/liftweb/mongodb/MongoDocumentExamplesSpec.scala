@@ -23,7 +23,7 @@ import java.util.regex.Pattern
 import org.bson.types.ObjectId
 import com.mongodb.{BasicDBList, BasicDBObject, DBObject, MongoException}
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import json.DefaultFormats
 import json.JsonParser._
@@ -175,7 +175,9 @@ package mongotestdocs {
 /**
  * Systems under specification for MongoDocumentExamples.
  */
-object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Specification") with MongoTestKit {
+object MongoDocumentExamplesSpec extends MongoTestKit {
+
+  "MongoDocumentExamples Specification".title
   import mongotestdocs._
 
   override def dbName = "lift_mongodocumentexamples"
@@ -183,9 +185,6 @@ object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Sp
   override def dbs = (TstDBa, defaultHost, "lift_mongodocumentexamples_a") :: super.dbs
 
   "Simple Person example" in {
-
-    checkMongoIsRunning
-
     // create a new SimplePerson
     val pid = ObjectId.get
     val p = SimplePerson(pid, "Tim", 38)
@@ -197,14 +196,14 @@ object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Sp
     def pFromDb = SimplePerson.find(pid)
 
     pFromDb.isDefined must_== true
-    p mustEqual pFromDb.get
+    p must_== pFromDb.get
 
     // retrieve it using a Json query
     def pFromDbViaJson = SimplePerson.find(("_id" -> ("$oid" -> p._id.toString)))
 
     pFromDbViaJson.isDefined must_== true
 
-    p mustEqual pFromDbViaJson.get
+    p must_== pFromDbViaJson.get
 
     // modify and save the person
     // with scala 2.8 you can use the copy function to do this
@@ -232,12 +231,10 @@ object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Sp
 
       SimplePerson.drop
     }
+	  success
   }
 
   "Multiple Simple Person example" in {
-
-    checkMongoIsRunning
-
     // create new SimplePersons
     val p = SimplePerson(ObjectId.get, "Jill", 27)
     val p2 = SimplePerson(ObjectId.get, "Bob", 25)
@@ -257,9 +254,9 @@ object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Sp
     p2FromDb.isDefined must_== true
     p3FromDb.isDefined must_== true
 
-    p mustEqual pFromDb.get
-    p2 mustEqual p2FromDb.get
-    p3 mustEqual p3FromDb.get
+    p must_== pFromDb.get
+    p2 must_== p2FromDb.get
+    p3 must_== p3FromDb.get
 
     // find all persons named 'Bob'
     val allBobs = SimplePerson.findAll(("name" -> "Bob"))
@@ -283,12 +280,10 @@ object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Sp
 
       SimplePerson.drop
     }
+  	success
   }
 
   "Person example" in {
-
-    checkMongoIsRunning
-
     def date(s: String) = Person.formats.dateFormat.parse(s).get
 
     val cal = Calendar.getInstance
@@ -318,13 +313,12 @@ object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Sp
 
       Person.drop
     }
+	  success
   }
 
   "Mongo tutorial example" in {
 
     import scala.collection.JavaConversions._
-
-    checkMongoIsRunning
 
     // get the indexes
     val ixs = MongoDB.useCollection(TstCollection.collectionName)( coll => {
@@ -333,7 +327,7 @@ object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Sp
 
     // unique index on name
     val ixName = ixs.find(dbo => dbo.get("name") == "name_1")
-    ixName must notBeEmpty
+    ixName must not be empty
     ixName foreach { ix =>
       ix.containsField("unique") must beTrue
       ix.get("unique").asInstanceOf[Boolean] must beTrue
@@ -341,7 +335,7 @@ object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Sp
 
     // non-unique index on dbtype
     val ixDbtype = ixs.find(dbo => dbo.get("name") == "dbtype_1")
-    ixDbtype must notBeEmpty
+    ixDbtype must not be empty
     ixDbtype foreach { ix =>
       ix.containsField("unique") must beFalse
     }
@@ -466,11 +460,10 @@ object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Sp
     IDoc.findAll.length must_== 50
 
     IDoc.drop
+	  success
   }
 
   "Mongo useSession example" in {
-
-    checkMongoIsRunning
 
     val tc = SessCollection(ObjectId.get, "MongoSession", "db", 1)
     val tc2 = SessCollection(ObjectId.get, "MongoSession", "db", 1)
@@ -495,14 +488,14 @@ object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Sp
       val o2 = ("$inc" -> ("count" -> 1)) // increment count by 1
       //("$set" -> ("dbtype" -> "docdb")) // set dbtype
       SessCollection.update(qry, o2, db)
-      db.getLastError.get("updatedExisting") must_== true
+      db.getLastError.get("updatedExisting") must be_===(true)
       /* The update method only updates one document. */
-      db.getLastError.get("n") must_== 1
+      db.getLastError.get("n") must be_===(1)
 
       /* Multiple documents now supported */
       SessCollection.update(qry, o2, db, Multi)
-      db.getLastError.get("updatedExisting") must_== true
-      db.getLastError.get("n") must_== 2
+      db.getLastError.get("updatedExisting") must be_===(true)
+      db.getLastError.get("n") must be_===(2)
 
       // regex query example
       val lst = SessCollection.findAll(new BasicDBObject("name", Pattern.compile("^Mongo")))
@@ -526,13 +519,11 @@ object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Sp
 
         SessCollection.drop
       }
-
     })
+	  success
   }
 
   "Primitives example" in {
-
-    checkMongoIsRunning
 
     def date(s: String) = Primitive.formats.dateFormat.parse(s).get
 
@@ -546,7 +537,7 @@ object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Sp
 
     pFromDb.isDefined must_== true
 
-    p mustEqual pFromDb.get
+    p must_== pFromDb.get
 
     if (!debug) {
       // delete it
@@ -555,11 +546,10 @@ object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Sp
       pFromDb.isEmpty must_== true
       Primitive.drop
     }
+	  success
   }
 
   "Ref example" in {
-
-    checkMongoIsRunning
 
     val ref1 = RefJDoc(ObjectId.get)
     val ref2 = RefJDoc(ObjectId.get)
@@ -610,11 +600,10 @@ object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Sp
 
     MainJDoc.drop
     RefJDoc.drop
+	  success
   }
 
   "Pattern example" in {
-
-    checkMongoIsRunning
 
     val pdoc1 = PatternDoc(ObjectId.get, Pattern.compile("^Mo", Pattern.CASE_INSENSITIVE))
     pdoc1.save
@@ -625,11 +614,10 @@ object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Sp
         pdoc.regx.pattern must_== pdoc1.regx.pattern
         pdoc.regx.flags must_== pdoc1.regx.flags
     }
+  	success
   }
 
   "Issue 586 Date test" in {
-
-    checkMongoIsRunning
 
     def date(s: String): Date = StringDateDoc.formats.dateFormat.parse(s).get
 
@@ -655,6 +643,6 @@ object MongoDocumentExamplesSpec extends Specification("MongoDocumentExamples Sp
             sdd2.dt must_== sdd.dt
         }
     }
-
+    success
   }
 }

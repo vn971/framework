@@ -30,8 +30,8 @@ import util.Helpers._
 import java.util.Calendar
 import scala.xml.{Node, Text}
 
-import org.specs._
-import org.specs.runner.{ConsoleRunner, JUnit3}
+import org.specs2.mutable._
+import org.specs2.specification._
 
 import fixtures._
 
@@ -39,21 +39,23 @@ import fixtures._
 /**
  * Systems under specification for RecordField.
  */
-object FieldSpec extends Specification("Record Field Specification") {
-  def passBasicTests[A](example: A, mandatory: MandatoryTypedField[A], legacyOptional: MandatoryTypedField[A], optional: OptionalTypedField[A])(implicit m: scala.reflect.Manifest[A]): Unit = {
-    val canCheckDefaultValues =
-      !mandatory.defaultValue.isInstanceOf[Calendar] // don't try to use the default value of date/time typed fields, because it changes from moment to moment!
-
-    def commonBehaviorsForAllFlavors(in: TypedField[A]): Unit = {
+object FieldSpec extends Specification {
+  "Record Field Specification".title
+  
+   def passBasicTests[A](example: A, m: =>MandatoryTypedField[A], l: =>MandatoryTypedField[A], o: =>OptionalTypedField[A])= {
+    val canCheckDefaultValues = !m.defaultValue.isInstanceOf[Calendar] // don't try to use the default value of date/time typed fields, because it changes from moment to moment!
+    def commonBehaviorsForAllFlavors(in: TypedField[A]) = {
       if (canCheckDefaultValues) {
         "which have the correct initial value" in {
-          mandatory.value must_== mandatory.defaultValue
+		  val mandatory = m
+		  mandatory.value must_== mandatory.defaultValue
           mandatory.valueBox must_== mandatory.defaultValueBox
         }
       }
 
       "which are readable and writable" in {
-        mandatory.valueBox must verify(_.isDefined)
+		val mandatory = m
+        mandatory.valueBox.isDefined must beTrue
         mandatory.set(example)
         mandatory.value must_== example
         mandatory.valueBox must_== Full(example)
@@ -67,48 +69,56 @@ object FieldSpec extends Specification("Record Field Specification") {
 
       if (canCheckDefaultValues) {
         "which correctly clear back to the default" in {
-          mandatory.valueBox must verify(_.isDefined)
+		  val mandatory = m
+          mandatory.valueBox.isDefined must beTrue
           mandatory.clear
           mandatory.valueBox must_== mandatory.defaultValueBox
         }
       }
 
       "which capture error conditions set in" in {
+		val mandatory = m
         mandatory.setBox(Failure("my failure"))
         mandatory.valueBox must_== Failure("my failure")
       }
     }
 
     "support mandatory fields" in {
-      commonBehaviorsForAllFlavors(mandatory)
+      commonBehaviorsForAllFlavors(m)
 
       "which are configured correctly" in {
+		val mandatory = m
         mandatory.optional_? must_== false
       }
       
       "which initialize to some value" in {
-        mandatory.valueBox must verify(_.isDefined)
+        val mandatory = m
+        mandatory.valueBox.isDefined must beTrue
       }
 
       "which correctly fail to be set to Empty" in {
-        mandatory.valueBox must verify(_.isDefined)
+        val mandatory = m
+        mandatory.valueBox.isDefined must beTrue
         mandatory.setBox(Empty)
-        mandatory.valueBox must beLike { case Failure(s, _, _) if s == mandatory.notOptionalErrorMessage => true }
+        mandatory.valueBox must beLike { case Failure(s, _, _) if s == mandatory.notOptionalErrorMessage => ok }
       }
     }
 
     "support 'legacy' optional fields (override optional_?)" in {
-      commonBehaviorsForAllFlavors(legacyOptional)
+      commonBehaviorsForAllFlavors(l)
 
       "which are configured correctly" in {
+	    val legacyOptional = l
         legacyOptional.optional_? must_== true
       }
 
       "which initialize to Empty" in {
+	    val legacyOptional = l
         legacyOptional.valueBox must_== Empty
       }
 
       "which do not fail when set to Empty" in {
+	    val legacyOptional = l
         legacyOptional.set(example)
         legacyOptional.value must_== example
         legacyOptional.valueBox must_== Full(example)
@@ -125,21 +135,25 @@ object FieldSpec extends Specification("Record Field Specification") {
           legacyOptional.value must_== legacyOptional.defaultValue
           legacyOptional.valueBox must_== legacyOptional.defaultValueBox
         }
+  	    success
       }
     }
 
     "support optional fields" in {
-      commonBehaviorsForAllFlavors(optional)
+      commonBehaviorsForAllFlavors(o)
 
       "which are configured correctly" in {
+	  	val optional = o
         optional.optional_? must_== true
       }
 
       "which initialize to Empty" in {
+	  	val optional = o
         optional.valueBox must_== Empty
       }
 
       "which do not fail when set to Empty" in {
+	  	val optional = o
         optional.set(Some(example))
         optional.value must_== Some(example)
         optional.valueBox must_== Full(example)
@@ -156,45 +170,50 @@ object FieldSpec extends Specification("Record Field Specification") {
     }
   }
 
-  def passConversionTests[A](example: A, mandatory: MandatoryTypedField[A], jsexp: JsExp, jvalue: JValue, formPattern: Box[String]): Unit = {
+  def passConversionTests[A](example: A, m: =>MandatoryTypedField[A], jsexp: JsExp, jvalue: JValue, formPattern: Box[String]) = {
 
     "convert to JsExp" in {
+	  val mandatory = m
       mandatory.set(example)
-      mandatory.asJs mustEqual jsexp
+      mandatory.asJs must_== jsexp
     }
 
     "convert to JValue" in {
+	  val mandatory = m
       mandatory.set(example)
-      mandatory.asJValue mustEqual jvalue
+      mandatory.asJValue must_== jvalue
     }
 
     // toInternetDate doesn't retain millisecond data so, dates can't be compared accurately.
-    if (!mandatory.defaultValue.isInstanceOf[Calendar]) {
+    if (!m.defaultValue.isInstanceOf[Calendar]) {
       "get set from JValue" in {
-        mandatory.setFromJValue(jvalue) mustEqual Full(example)
-        mandatory.value mustEqual example
-        () // does not compile without this: no implicit argument matching parameter type scala.reflect.Manifest[org.specs.specification.Result[mandatory.MyType]]
+	    val mandatory = m
+        mandatory.setFromJValue(jvalue) must_== Full(example)
+        mandatory.value must_== example
       }
     }
 
     formPattern foreach { fp =>
       "convert to form XML" in {
+	    val mandatory = m
         mandatory.set(example)
         val session = new LiftSession("", randomString(20), Empty)
         S.initIfUninitted(session) {
           val formXml = mandatory.toForm
-          formXml must notBeEmpty
+          formXml must not be empty
           formXml foreach { f =>
             f.toString must beMatching(fp)
           }
         }
+	      success
       }
     }
+    success
   }
 
     /* Since Array[Byte]s cannot be compared, commenting out this test for now
   "BinaryField" should {
-    val rec = FieldTypeTestRecord.createRecord
+    def rec = FieldTypeTestRecord.createRecord
     val a = new Array[Byte](3)
     a(0) = 1
     a(1) = 2
@@ -204,7 +223,7 @@ object FieldSpec extends Specification("Record Field Specification") {
     */
 
   "BooleanField" should {
-    val rec = FieldTypeTestRecord.createRecord
+    def rec = FieldTypeTestRecord.createRecord
     val bool = true
     passBasicTests(bool, rec.mandatoryBooleanField, rec.legacyOptionalBooleanField, rec.optionalBooleanField)
     passConversionTests(
@@ -217,7 +236,7 @@ object FieldSpec extends Specification("Record Field Specification") {
   }
 
   "CountryField" should {
-    val rec = FieldTypeTestRecord.createRecord
+    def rec = FieldTypeTestRecord.createRecord
     val country = Countries.Canada
     passBasicTests(country, rec.mandatoryCountryField, rec.legacyOptionalCountryField, rec.optionalCountryField)
     passConversionTests(
@@ -230,7 +249,7 @@ object FieldSpec extends Specification("Record Field Specification") {
   }
 
   "DateTimeField" should {
-    val rec = FieldTypeTestRecord.createRecord
+    def rec = FieldTypeTestRecord.createRecord
     val dt = Calendar.getInstance
     val dtStr = toInternetDate(dt.getTime)
     passBasicTests(dt, rec.mandatoryDateTimeField, rec.legacyOptionalDateTimeField, rec.optionalDateTimeField)
@@ -244,7 +263,7 @@ object FieldSpec extends Specification("Record Field Specification") {
   }
 
   "DecimalField" should {
-    val rec = FieldTypeTestRecord.createRecord
+    def rec = FieldTypeTestRecord.createRecord
     val bd = BigDecimal("12.34")
     passBasicTests(bd, rec.mandatoryDecimalField, rec.legacyOptionalDecimalField, rec.optionalDecimalField)
     passConversionTests(
@@ -257,7 +276,7 @@ object FieldSpec extends Specification("Record Field Specification") {
   }
 
   "DoubleField" should {
-    val rec = FieldTypeTestRecord.createRecord
+    def rec = FieldTypeTestRecord.createRecord
     val d = 12.34
     passBasicTests(d, rec.mandatoryDoubleField, rec.legacyOptionalDoubleField, rec.optionalDoubleField)
     passConversionTests(
@@ -270,7 +289,7 @@ object FieldSpec extends Specification("Record Field Specification") {
   }
 
   "EmailField" should {
-    val rec = FieldTypeTestRecord.createRecord
+    def rec = FieldTypeTestRecord.createRecord
     val email = "foo@bar.baz"
     passBasicTests(email, rec.mandatoryEmailField, rec.legacyOptionalEmailField, rec.optionalEmailField)
     passConversionTests(
@@ -283,7 +302,7 @@ object FieldSpec extends Specification("Record Field Specification") {
   }
 
   "EnumField" should {
-    val rec = FieldTypeTestRecord.createRecord
+    def rec = FieldTypeTestRecord.createRecord
     val ev = MyTestEnum.TWO
     passBasicTests(ev, rec.mandatoryEnumField, rec.legacyOptionalEnumField, rec.optionalEnumField)
     passConversionTests(
@@ -296,7 +315,7 @@ object FieldSpec extends Specification("Record Field Specification") {
   }
 
   "IntField" should {
-    val rec = FieldTypeTestRecord.createRecord
+    def rec = FieldTypeTestRecord.createRecord
     val num = 123
     passBasicTests(num, rec.mandatoryIntField, rec.legacyOptionalIntField, rec.optionalIntField)
     passConversionTests(
@@ -309,7 +328,7 @@ object FieldSpec extends Specification("Record Field Specification") {
   }
 
   "LocaleField" should {
-    val rec = FieldTypeTestRecord.createRecord
+    def rec = FieldTypeTestRecord.createRecord
     val example = java.util.Locale.getDefault.toString match {
       case "en_US" => "en_GB"
       case _ => "en_US"
@@ -318,7 +337,7 @@ object FieldSpec extends Specification("Record Field Specification") {
   }
 
   "LongField" should {
-    val rec = FieldTypeTestRecord.createRecord
+    def rec = FieldTypeTestRecord.createRecord
     val lng = 1234L
     passBasicTests(lng, rec.mandatoryLongField, rec.legacyOptionalLongField, rec.optionalLongField)
     passConversionTests(
@@ -351,7 +370,7 @@ object FieldSpec extends Specification("Record Field Specification") {
   }
 
   "PostalCodeField" should {
-    val rec = FieldTypeTestRecord.createRecord
+    def rec = FieldTypeTestRecord.createRecord
     val zip = "02452"
     rec.mandatoryCountryField.set(Countries.USA)
     passBasicTests(zip, rec.mandatoryPostalCodeField, rec.legacyOptionalPostalCodeField, rec.optionalPostalCodeField)
@@ -365,44 +384,36 @@ object FieldSpec extends Specification("Record Field Specification") {
   }
 
   "StringField" should {
-    {
-      val rec = FieldTypeTestRecord.createRecord
-      val str = "foobar"
-      passBasicTests(str, rec.mandatoryStringField, rec.legacyOptionalStringField, rec.optionalStringField)
-      passConversionTests(
+    def rec = FieldTypeTestRecord.createRecord
+    val str = "foobar"
+    passBasicTests(str, rec.mandatoryStringField, rec.legacyOptionalStringField, rec.optionalStringField)
+    passConversionTests(
         str,
         rec.mandatoryStringField,
         Str(str),
         JString(str),
         Full("<input name=\".*\" type=\"text\" maxlength=\"100\" tabindex=\"1\" value=\""+str+"\" id=\"mandatoryStringField_id_field\"></input>")
-      )
-    }
+    )
 
     "honor validators configured in the usual way" in {
-      val rec = StringTestRecord.createRecord
+      val stringRec = StringTestRecord.createRecord
 
-      rec.validate must_== (
-        FieldError(rec.string, Text("String field name must be at least 3 characters.")) ::
-        Nil
-      )
+      stringRec.validate must_== (FieldError(stringRec.string, Text("String field name must be at least 3 characters.")) ::  Nil)
     }
-
     "honor harnessed validators" in {
-      val rec = ValidationTestRecord.createRecord
-      val field = rec.stringFieldWithValidation
   
-      "which always succeed" in {
+      "which always succeed" in new validation {
         field.validationHarness = _ => Nil
         rec.validate must_== Nil
       }
 
-      "which always fail" in {
+      "which always fail" in new validation {
         val fieldError = FieldError(field, Text("failed"))
         field.validationHarness = s => FieldError(rec.stringFieldWithValidation, Text("failed")) :: Nil
         rec.validate must_== (fieldError :: Nil)
       }
 
-      "which receive the value" in {
+      "which receive the value" in new validation {
         var received: String = null
         field.set("foobar")
         field.validationHarness = s => { received = s; Nil }
@@ -412,37 +423,35 @@ object FieldSpec extends Specification("Record Field Specification") {
     }
 
     "support filtering" in {
-      val rec = FilterTestRecord.createRecord
-      val field = rec.stringFieldWithFiltering
 
-      "which does nothing" in {
+      "which does nothing" in new filter {
         field.set("foobar")
         field.value must_== "foobar"
         field.valueBox must_== Full("foobar")
       }
 
-      "which trims the input at the value level" in {
+      "which trims the input at the value level" in new filter {
         field.setFilterHarness = _.trim
         field.set("  foobar  ")
         field.value must_== "foobar"
         field.valueBox must_== Full("foobar")
       }
 
-      "which trims the input at the box level" in {
+      "which trims the input at the box level" in new filter {
         field.setFilterBoxHarness = _.map(_.trim)
         field.set("   foobar   ")
         field.value must_== "foobar"
         field.valueBox must_== Full("foobar")
       }
 
-      "which Empties the box" in {
+      "which Empties the box" in new filter {
         field.setFilterBoxHarness = s => Empty
         field.set("foobar")
         field.value must_== field.defaultValue
         field.valueBox must_== Empty
       }
 
-      "which Fails" in {
+      "which Fails" in new filter {
         field.setFilterBoxHarness = s => Failure("my failure")
         field.set("foobar")
         field.value must_== field.defaultValue
@@ -452,7 +461,7 @@ object FieldSpec extends Specification("Record Field Specification") {
   }
 
   "TextareaField" should {
-    val rec = FieldTypeTestRecord.createRecord
+    def rec = FieldTypeTestRecord.createRecord
     val txt = "foobar"
     passBasicTests(txt, rec.mandatoryTextareaField, rec.legacyOptionalTextareaField, rec.optionalTextareaField)
     passConversionTests(
@@ -465,7 +474,7 @@ object FieldSpec extends Specification("Record Field Specification") {
   }
 
   "TimeZoneField" should {
-    val rec = FieldTypeTestRecord.createRecord
+    def rec = FieldTypeTestRecord.createRecord
     val example = java.util.TimeZone.getDefault.getID match {
       case "America/New_York" => "Europe/London"
       case _ => "America/New_York"
@@ -480,4 +489,11 @@ object FieldSpec extends Specification("Record Field Specification") {
     )
   }
 }
-
+trait validation extends Scope {
+  val rec = ValidationTestRecord.createRecord
+  val field = rec.stringFieldWithValidation
+}
+trait filter extends Scope {
+  val rec = FilterTestRecord.createRecord
+  val field = rec.stringFieldWithFiltering
+}

@@ -17,13 +17,15 @@
 package net.liftweb
 package json
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 
 /**
  * System under specification for JSON Pull Parser.
  */
-object PullParserExamples extends Specification("JSON Pull Parser Examples") {
+object PullParserExamples extends Specification {
+  "JSON Pull Parser Examples".title
+  
   import JsonParser._
 
   "Pull parsing example" in {
@@ -41,7 +43,7 @@ object PullParserExamples extends Specification("JSON Pull Parser Examples") {
     }
 
     val postalCode = parse(json, parser)
-    postalCode mustEqual 10021
+    postalCode must_== 10021
   }
 
   val json = """

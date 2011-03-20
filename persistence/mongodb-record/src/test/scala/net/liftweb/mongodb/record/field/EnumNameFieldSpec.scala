@@ -20,7 +20,7 @@ package record
 package field
 
 import org.bson.types.ObjectId
-import org.specs.Specification
+import org.specs2.mutable._
 
 import net.liftweb.common._
 import net.liftweb.json.ext.EnumNameSerializer
@@ -68,72 +68,68 @@ package enumnamefieldspecs {
 /**
  * Systems under specification for EnumNameField.
  */
-object EnumNameFieldSpec extends Specification("EnumNameField Specification") with MongoTestKit {
+object EnumNameFieldSpec extends MongoTestKit {
+  "EnumNameField Specification".title
 
   import enumnamefieldspecs._
 
   "EnumNameField" should {
-
     "work with default values" in {
-      checkMongoIsRunning
-
       val er = EnumNameRec.createRecord.save
 
       val erFromDb = EnumNameRec.find(er.id)
-      erFromDb must notBeEmpty
+      erFromDb must not be empty
       erFromDb foreach { er2 =>
-        er2 mustEqual er
-        er2.dow.value mustEqual WeekDay.Mon
-        er2.dowOptional.valueBox mustEqual Empty
-        er2.jsonobj.value mustEqual JsonObj(WeekDay.Mon)
+        er2 must_== er
+        er2.dow.value must_== WeekDay.Mon
+        er2.dowOptional.valueBox must_== Empty
+        er2.jsonobj.value must_== JsonObj(WeekDay.Mon)
       }
+	  success
     }
 
     "work with set values" in {
-      checkMongoIsRunning
-
       val er = EnumNameRec.createRecord
         .dow(WeekDay.Tue)
         .jsonobj(JsonObj(WeekDay.Sun))
         .save
 
       val erFromDb = EnumNameRec.find(er.id)
-      erFromDb must notBeEmpty
+      erFromDb must not be empty
       erFromDb foreach { er2 =>
-        er2 mustEqual er
-        er2.dow.value mustEqual WeekDay.Tue
-        er2.jsonobj.value mustEqual JsonObj(WeekDay.Sun)
+        er2 must_== er
+        er2.dow.value must_== WeekDay.Tue
+        er2.jsonobj.value must_== JsonObj(WeekDay.Sun)
       }
+	  success
     }
 
     "work with Empty optional values" in {
-      checkMongoIsRunning
-
       val er = EnumNameRec.createRecord
       er.dowOptional.setBox(Empty)
       er.save
 
       val erFromDb = EnumNameRec.find(er.id)
-      erFromDb must notBeEmpty
+      erFromDb must not be empty
       erFromDb foreach { er2 =>
-        er2 mustEqual er
-        er2.dowOptional.valueBox mustEqual Empty
+        er2 must_== er
+        er2.dowOptional.valueBox must_== Empty
       }
+	  success
     }
 
     "work with Full optional values" in {
-      checkMongoIsRunning
-
       val er = EnumNameRec.createRecord
       er.dowOptional.setBox(Full(WeekDay.Sat))
       er.save
 
       val erFromDb = EnumNameRec.find(er.id)
-      erFromDb must notBeEmpty
+      erFromDb must not be empty
       erFromDb foreach { er2 =>
-        er2 mustEqual er
-        er2.dowOptional.valueBox mustEqual Full(WeekDay.Sat)
+        er2 must_== er
+        er2.dowOptional.valueBox must_== Full(WeekDay.Sat)
       }
+	  success
     }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 WorldWide Conferencing, LLC
+ * Copyright 2010 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,30 +17,26 @@
 package net.liftweb
 package common
 
-import org.specs.Specification
+import org.specs2.mutable._
+import _root_.net.liftweb.common.Box._
 
-
-/**
- * Systems under specification for LRU Map.
- */
-object LruMapSpec extends Specification("LRU Map Specification") {
-
-  "An LRU Map" should {
-
-    "never grow beyond the given size" in {
+class LruMapSpec extends Specification {
+  "LRU" should {
+    "never grow beyond a certain size" in {
       val lru = new LRUMap[Int, Int](10)
       for (i <- 1 to 20) lru(i) = i
 
       lru.size must_== 10
     }
 
-    "have the last N elements (where N is the initial MaxSize)" in {
+    "have the last 10 elements" in {
       val lru = new LRUMap[Int, Int](10)
       for (i <- 1 to 20) lru(i) = i
 
       lru.size must_== 10
-      for (i <- 11 to 20) lru(i) must_== i
+      ((i: Int) => lru(i) must_== i).forall(11 to 20)
     }
+
 
     "expire elements to func" in {
       var expCnt = 0
@@ -49,10 +45,10 @@ object LruMapSpec extends Specification("LRU Map Specification") {
 
       lru.size must_== 10
       expCnt must_== 10
-      for (i <- 11 to 20) lru(i) must_== i
+      ((i: Int) => lru(i) must_== i).forall(11 to 20)
     }
 
-    "not expire the recently accessed elements" in {
+    "not expire recently accessed" in {
       var expCnt = 0
       val lru = new LRUMap[Int, Int](10, Empty, (k, v) => {expCnt += 1; k must_== v; k must be > 0})
       for (i <- 1 to 20) {
@@ -66,6 +62,4 @@ object LruMapSpec extends Specification("LRU Map Specification") {
     }
 
   }
-
 }
-

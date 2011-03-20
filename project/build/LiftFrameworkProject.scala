@@ -77,7 +77,7 @@ class LiftFrameworkProject(info: ProjectInfo) extends ParentProject(info) with L
 
       // Specs needed in 'provided' scope, this will lead to duplications in testclasspath though
       override def libraryDependencies =
-        super.libraryDependencies ++ Seq("org.scala-tools.testing" %% "specs" % specsVersion % "provided")
+        super.libraryDependencies ++ Seq("org.scala-tools.testing" %% "specs" % specsVersion % "provided", "org.specs2" %% "specs2" % "1.1-SNAPSHOT" % "provided")
 
       // Move testkit dependency from 'compile' (default) to 'provided' scope
       override def deliverProjectDependencies =
@@ -92,7 +92,9 @@ class LiftFrameworkProject(info: ProjectInfo) extends ParentProject(info) with L
   // ------------
   class FrameworkProject(info: ProjectInfo, libs: ModuleID*) extends DefaultProject(info) with LiftDefaultProject {
 
-    override def libraryDependencies = super.libraryDependencies ++ libs
+    override def libraryDependencies = super.libraryDependencies ++ libs ++ Seq("org.specs2" %% "specs2" % "1.1-SNAPSHOT" % "test")
+    def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
+    override def testFrameworks = super.testFrameworks ++ Seq(specs2Framework)
 
     override def packageOptions =
       ManifestAttributes((new Name("Build-Time"), Calendar.getInstance.getTimeInMillis.toString)) :: super.packageOptions.toList

@@ -22,8 +22,6 @@ import java.math.MathContext
 import scala.xml.Text
 import common.{Box, Empty, Full}
 import util.{FieldError, Helpers}
-import org.specs._
-import org.specs.runner.{ConsoleRunner, JUnit3}
 
 import field._
 
@@ -217,7 +215,7 @@ class FieldTypeTestRecord private () extends Record[FieldTypeTestRecord] {
 
   override def equals(other: Any): Boolean = other match {
     case that:FieldTypeTestRecord =>
-      //this.mandatoryBinaryField.value mustEqual that.mandatoryBinaryField.value
+      //this.mandatoryBinaryField.value must_== that.mandatoryBinaryField.value
       this.mandatoryBooleanField.value == that.mandatoryBooleanField.value &&
       this.mandatoryCountryField.value == that.mandatoryCountryField.value &&
       Helpers.toInternetDate(this.mandatoryDateTimeField.value.getTime) ==

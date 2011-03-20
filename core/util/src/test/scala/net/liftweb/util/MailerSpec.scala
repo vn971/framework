@@ -19,7 +19,8 @@ package util
 
 import javax.mail.internet.{MimeMessage, MimeMultipart}
 
-import org.specs.Specification
+import org.specs2.mutable._
+import org.specs2.specification._
 
 import common._
 
@@ -27,89 +28,59 @@ import common._
 /**
  * Systems under specification for Lift Mailer.
  */
-object MailerSpec extends Specification("Mailer Specification") {
+class MailerSpec extends Specification {
+  "Mailer Specification".title
+  sequential
   
-  MyMailer.touch()
-
-  import MyMailer._
-  
-  private def doNewMessage(f: => Unit): MimeMessage = {
-    lastMessage = Empty
-
-    val ignore = f
-
-    MailerSpec.this.synchronized {
-      while (lastMessage.isEmpty) {
-        MailerSpec.this.wait(100)
-      }
-      lastMessage.open_!
-    }
-  }
-
   "A Mailer" should {
-
-    "deliver simple messages as simple messages" in {
-      val msg = doNewMessage {
-        sendMail(
-          From("sender@nowhere.com"),
-          Subject("This is a simple email"),
-          To("recipient@nowhere.com"),
-          PlainMailBodyType("Here is some plain text.")
-        )
-      }
-
-      msg.getContent match {
-        case s: String => true must_== true
-        case x => fail("The simple message has content type of " + x.getClass.getName)
-      }
+    "deliver simple messages as simple messages" in new mailer {
+      send(
+        From("sender@nowhere.com"),
+        Subject("This is a simple email"),
+        To("recipient@nowhere.com"),
+        PlainMailBodyType("Here is some plain text.")
+      ).getContent must haveClass[String]
     }
 
-    "deliver multipart messages as multipart" in {
-      val msg = doNewMessage {
-        sendMail(
-          From("sender@nowhere.com"),
-          Subject("This is a multipart email"),
-          To("recipient@nowhere.com"),
-          PlainMailBodyType("Here is some plain text."),
-          PlainMailBodyType("Here is some more plain text.")
-        )
-      }
-
-      msg.getContent match {
-        case mp: MimeMultipart => true must_== true
-        case x => fail("The complex message has content type of " + x.getClass.getName)
-      }
+    "deliver multipart messages as multipart" in new mailer {
+      send(
+        From("sender@nowhere.com"),
+        Subject("This is a multipart email"),
+        To("recipient@nowhere.com"),
+        PlainMailBodyType("Here is some plain text."),
+        PlainMailBodyType("Here is some more plain text.")
+      ).getContent must haveClass[MimeMultipart]
     }
 
-    "deliver rich messages as multipart" in {
-      val msg = doNewMessage {
-        sendMail(
-          From("sender@nowhere.com"),
-          Subject("This is a rich email"),
-          To("recipient@nowhere.com"),
-          XHTMLMailBodyType(<html> <body>Here is some rich text</body> </html>)
-        )
-      }
-
-      msg.getContent match {
-        case mp: MimeMultipart => true must_== true
-        case x => fail("The complex message has content type of " + x.getClass.getName)
-      }
+    "deliver rich messages as multipart" in new mailer {
+      send(
+        From("sender@nowhere.com"),
+        Subject("This is a rich email"),
+        To("recipient@nowhere.com"),
+        XHTMLMailBodyType(<html> <body>Here is some rich text</body> </html>)
+      ).getContent must haveClass[MimeMultipart]
+    }
+  }
+  
+  trait mailer extends MailerImpl with Scope {
+    @volatile var lastMessage: Box[MimeMessage] = Empty
+	val lock = new Object;
+    testModeSend.default.set((msg: MimeMessage) => 
+	  lock.synchronized {
+	     lastMessage = Full(msg) 
+		 lock.notifyAll
+      })
+	  
+    def send(f: From, s: Subject, bodies: MailTypes*): MimeMessage = {
+      lock.synchronized {
+        sendMail(f, s, bodies:_*)
+	    while (lastMessage.isEmpty) { 
+		  lock.wait() 
+		}
+        lastMessage.open_!
+	  }
     }
   }
 }
 
-object MyMailer extends MailerImpl {
-    @volatile var lastMessage: Box[MimeMessage] = Empty
-
-   testModeSend.default.set((msg: MimeMessage) => {
-     lastMessage = Full(msg)
-//     MailerSpec.this.notifyAll()
-   })
-
-  def touch() {
-    Props.testMode
-    Thread.sleep(10)
-  } // do nothing, but force initialization of this class
-}
 

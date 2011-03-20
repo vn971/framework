@@ -17,37 +17,31 @@
 package net.liftweb
 package mongodb
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import com.mongodb._
 
-object MongoSpec extends Specification("Mongo Specification") {
+object MongoSpec extends Specification {
+  "Mongo Specification".title
 
   case object TestMongoIdentifier extends MongoIdentifier {
     val jndiName = "test_a"
   }
 
-  def passDefinitionTests(id: MongoIdentifier, ma: MongoAddress): Unit = {
+  def passDefinitionTests(id: MongoIdentifier, ma: MongoAddress) = {
     // define the db
     MongoDB.close
     MongoDB.defineDb(id, ma)
     // make sure it can be used
     try {
-      MongoDB.use(id) { db =>
-        db.getLastError.ok must beEqualTo(true)
-      }
+      MongoDB.use(id) { db => db.getLastError.ok must beTrue }
     }
-    catch {
-      case e: MongoInternalException if (e.getMessage == "DBPort.findOne failed") => skip("MongoDB is not running")
-      case e: NullPointerException => skip("MongoDB is not running")
-      case e: MongoException if (e.getMessage == "can't find a master") => skip("MongoDB is not running")
-    }
+    catch { case e => skipped("MongoDB is not running")  }
     // using an undefined identifier throws an exception
-    MongoDB.use(DefaultMongoIdentifier) { db =>
-      db.getLastError.ok must beEqualTo(true)
-    } must throwA(new MongoException("Mongo not found: MongoIdentifier(test)"))
+    MongoDB.use(DefaultMongoIdentifier) { db => db.getLastError.ok must beEqualTo(true) } must throwA(new MongoException("Mongo not found: MongoIdentifier(test)"))
     // remove defined db
     MongoDB.close
+	  success
   }
 
   "Mongo" should {

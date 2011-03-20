@@ -17,7 +17,7 @@
 package net.liftweb
 package json
 
-import org.specs.Specification
+import org.specs2.mutable._
 import java.util.UUID
 
 object SerializationBugs extends Specification {
@@ -30,7 +30,7 @@ object SerializationBugs extends Specification {
 
     val game = Game(Map("a" -> Plan(Some(Action(1, None))))) 
     val ser = swrite(game)
-    read[Game](ser) mustEqual game
+    read[Game](ser) must_== game
   }
 
   "plan2.Plan can be serialized (issue 341)" in {
@@ -42,30 +42,30 @@ object SerializationBugs extends Specification {
     val ser = swrite(g1)
     val g2 = read[Game](ser)
     val plan = g2.buy("a")
-    g2.buy.size mustEqual 1
+    g2.buy.size must_== 1
     val leftOp = plan.leftOperand.get
-    leftOp.functionName mustEqual "f1"
-    leftOp.symbol mustEqual "s"
-    leftOp.inParams.toList mustEqual Nil
-    leftOp.subOperand mustEqual None
-    plan.operator mustEqual Some("A")
+    leftOp.functionName must_== "f1"
+    leftOp.symbol must_== "s"
+    leftOp.inParams.toList must_== Nil
+    leftOp.subOperand must_== None
+    plan.operator must_== Some("A")
     val rightOp = plan.rightOperand.get
-    rightOp.functionName mustEqual "f2"
-    rightOp.symbol mustEqual "s2"
-    rightOp.inParams.toList mustEqual List(0, 1, 2)
-    rightOp.subOperand mustEqual None
+    rightOp.functionName must_== "f2"
+    rightOp.symbol must_== "s2"
+    rightOp.inParams.toList must_== List(0, 1, 2)
+    rightOp.subOperand must_== None
   }
 
   "null serialization bug" in {
     val x = new X(null) 
     val ser = swrite(x)
-    read[X](ser) mustEqual x
+    read[X](ser) must_== x
   }
 
   "StackOverflowError with large Lists" in {
     val xs = LongList(List.fill(5000)(0).map(Num))
     val ser = swrite(xs)
-    read[LongList](ser).xs.length mustEqual 5000
+    read[LongList](ser).xs.length must_== 5000
   }
 
   "Custom serializer should work with Option" in {
@@ -84,8 +84,8 @@ object SerializationBugs extends Specification {
     implicit val formats = Serialization.formats(NoTypeHints) + new UUIDFormat
     val o1 = OptionalUUID(None)
     val o2 = OptionalUUID(Some(UUID.randomUUID))
-    read[OptionalUUID](swrite(o1)) mustEqual o1
-    read[OptionalUUID](swrite(o2)) mustEqual o2
+    read[OptionalUUID](swrite(o1)) must_== o1
+    read[OptionalUUID](swrite(o2)) must_== o2
   }
 }
 

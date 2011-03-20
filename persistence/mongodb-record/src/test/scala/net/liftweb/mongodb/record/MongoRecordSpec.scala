@@ -22,7 +22,6 @@ import java.util.{Date, UUID}
 import java.util.regex.Pattern
 
 import org.bson.types.ObjectId
-import org.specs.Specification
 
 import common._
 import json._
@@ -33,12 +32,11 @@ import net.liftweb.record.field.Countries
 /**
  * Systems under specification for MongoRecord.
  */
-object MongoRecordSpec extends Specification("MongoRecord Specification") with MongoTestKit {
-
+object MongoRecordSpec extends MongoTestKit {
+  "MongoRecord Specification".title
   import fixtures._
 
   "MongoRecord field introspection" should {
-    checkMongoIsRunning
 
     val rec = MongoFieldTypeTestRecord.createRecord
     val allExpectedFieldNames: List[String] = "_id" :: (for {
@@ -52,22 +50,24 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
 
     "correctly look up fields by name" in {
       for (name <- allExpectedFieldNames) {
-        rec.fieldByName(name) must verify(_.isDefined)
+        rec.fieldByName(name).isDefined must beTrue
       }
+	  success
     }
 
     "not look up fields by bogus names" in {
       for (name <- allExpectedFieldNames) {
-        rec.fieldByName("x" + name + "y") must not(verify(_.isDefined))
+        rec.fieldByName("x" + name + "y").isDefined must beFalse
       }
+	  success
     }
   }
 
   "MongoRecord lifecycle callbacks" should {
-    checkMongoIsRunning
+    
 
-    def testOneHarness(scope: String, f: LifecycleTestRecord => HarnessedLifecycleCallbacks): Unit = {
-      ("be called before validation when specified at " + scope) in {
+    def testOneHarness(scope: String, f: LifecycleTestRecord => HarnessedLifecycleCallbacks) = {
+      "be called before validation when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).beforeValidationHarness = () => triggered = true
@@ -75,7 +75,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
         triggered must_== true
       }
 
-      ("be called after validation when specified at " + scope) in {
+      "be called after validation when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).afterValidationHarness = () => triggered = true
@@ -83,7 +83,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
         triggered must_== true
       }
 
-      ("be called around validate when specified at " + scope) in {
+      "be called around validate when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggeredBefore = false
         var triggeredAfter = false
@@ -94,7 +94,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
         triggeredAfter must_== true
       }
 
-      ("be called before save when specified at " + scope) in {
+      "be called before save when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).beforeSaveHarness = () => triggered = true
@@ -102,7 +102,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
         triggered must_== true
       }
 
-      ("be called before create when specified at " + scope) in {
+      "be called before create when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).beforeCreateHarness = () => triggered = true
@@ -110,7 +110,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
         triggered must_== true
       }
 
-      ("be called before update when specified at " + scope) in {
+      "be called before update when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).beforeUpdateHarness = () => triggered = true
@@ -118,7 +118,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
         triggered must_== true
       }
 
-      ("be called after save when specified at " + scope) in {
+      "be called after save when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).afterSaveHarness = () => triggered = true
@@ -126,7 +126,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
         triggered must_== true
       }
 
-      ("be called after create when specified at " + scope) in {
+      "be called after create when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).afterCreateHarness = () => triggered = true
@@ -134,7 +134,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
         triggered must_== true
       }
 
-      ("be called after update when specified at " + scope) in {
+      "be called after update when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).afterUpdateHarness = () => triggered = true
@@ -142,7 +142,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
         triggered must_== true
       }
 
-      ("be called before delete when specified at " + scope) in {
+      "be called before delete when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).beforeDeleteHarness = () => triggered = true
@@ -150,7 +150,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
         triggered must_== true
       }
 
-      ("be called after delete when specified at " + scope) in {
+      "be called after delete when specified at " + scope ! {
         val rec = LifecycleTestRecord.createRecord
         var triggered = false
         f(rec).afterDeleteHarness = () => triggered = true
@@ -165,12 +165,8 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
   }
 
   "MongoRecord" should {
-    checkMongoIsRunning
-
-    val sr1 = SubRecord.createRecord
-      .name("SubRecord1")
-    val sr2 = SubRecord.createRecord
-      .name("SubRecord2")
+    val sr1 = SubRecord.createRecord.name("SubRecord1")
+    val sr2 = SubRecord.createRecord.name("SubRecord2")
 
     val fttr = FieldTypeTestRecord.createRecord
       //.mandatoryBinaryField()
@@ -230,44 +226,41 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
     ))
 
     "save and retrieve 'standard' type fields" in {
-      checkMongoIsRunning
-
       fttr.save
 
       val fttrFromDb = FieldTypeTestRecord.find(fttr.id)
-      fttrFromDb must notBeEmpty
+      fttrFromDb must not be empty
       fttrFromDb foreach { tr =>
-        tr mustEqual fttr
+        tr must_== fttr
       }
+	    success
     }
 
     "save and retrieve Mongo type fields" in {
-      checkMongoIsRunning
-
       mfttr.save
 
       val mfttrFromDb = MongoFieldTypeTestRecord.find(mfttr.id)
-      mfttrFromDb must notBeEmpty
+      mfttrFromDb must not be empty
       mfttrFromDb foreach { tr =>
-        tr.mandatoryDBRefField.value.getId mustEqual mfttr.mandatoryDBRefField.value.getId
-        tr.mandatoryDBRefField.value.getRef mustEqual mfttr.mandatoryDBRefField.value.getRef
-        tr mustEqual mfttr
+        tr.mandatoryDBRefField.value.getId must_== mfttr.mandatoryDBRefField.value.getId
+        tr.mandatoryDBRefField.value.getRef must_== mfttr.mandatoryDBRefField.value.getRef
+        tr must_== mfttr
       }
 
       ltr.save
 
       val ltrFromDb = ListTestRecord.find(ltr.id)
-      ltrFromDb must notBeEmpty
+      ltrFromDb must not be empty
       ltrFromDb foreach { tr =>
-        tr mustEqual ltr
+        tr must_== ltr
       }
 
       mtr.save
 
       val mtrFromDb = MapTestRecord.find(mtr.id)
-      mtrFromDb must notBeEmpty
+      mtrFromDb must not be empty
       mtrFromDb foreach { tr =>
-        tr mustEqual mtr
+        tr must_== mtr
       }
 
       srtr.save
@@ -277,12 +270,13 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
       srtrFromDb foreach { tr =>
         tr mustEqual srtr
       }
+      success
     }
 
     "convert Mongo type fields to JValue" in {
-      checkMongoIsRunning
+      
 
-      mfttr.asJValue mustEqual JObject(List(
+      mfttr.asJValue must_== JObject(List(
         JField("_id", JObject(List(JField("$oid", JString(mfttr.id.toString))))),
         JField("mandatoryDateField", JObject(List(JField("$dt", JString(mfttr.meta.formats.dateFormat.format(mfttr.mandatoryDateField.value)))))),
         JField("legacyOptionalDateField", JNothing),
@@ -298,7 +292,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
         JField("legacyOptionalUUIDField", JNothing)
       ))
 
-      ltr.asJValue mustEqual JObject(List(
+      ltr.asJValue must_== JObject(List(
         JField("_id", JObject(List(JField("$oid", JString(ltr.id.toString))))),
         JField("mandatoryStringListField", JArray(List(JString("abc"), JString("def"), JString("ghi")))),
         JField("legacyOptionalStringListField", JArray(List())),
@@ -314,7 +308,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
         )))
       ))
 
-      mtr.asJValue mustEqual JObject(List(
+      mtr.asJValue must_== JObject(List(
         JField("_id", JObject(List(JField("$oid", JString(mtr.id.toString))))),
         JField("_id", JObject(List(JField("$oid", JString(mtr.id.toString))))),
         JField("mandatoryStringMapField", JObject(List(
@@ -340,10 +334,10 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
     }
     
     "convert Mongo type fields to JsExp" in {
-      checkMongoIsRunning
+      
 
       /*
-      mfttr.asJsExp mustEqual JsObj(
+      mfttr.asJsExp must_== JsObj(
         ("_id", JsObj(("$oid", Str(mfttr.id.toString)))),
         ("mandatoryDateField", JsObj(("$dt", Str(mfttr.meta.formats.dateFormat.format(mfttr.mandatoryDateField.value))))),
         ("legacyOptionalDateField", Str("null")),
@@ -360,7 +354,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
       )*/
 
       /*
-      ltr.asJsExp mustEqual JsObj(
+      ltr.asJsExp must_== JsObj(
         ("_id", JsObj(("$oid", Str(ltr.id.toString)))),
         ("mandatoryStringListField", JsArray(Str("abc"), Str("def"), Str("ghi"))),
         ("legacyOptionalStringListField", JsArray()),
@@ -373,7 +367,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
         ("legacyOptionalMongoJsonObjectListField", JsArray())
       )
 
-      mtr.asJsExp mustEqual JsObj(
+      mtr.asJsExp must_== JsObj(
         ("_id", JsObj(("$oid", Str(mtr.id.toString)))),
         ("_id", JsObj(("$oid", Str(mtr.id.toString)))),
         ("mandatoryStringMapField", JsObj(
@@ -389,33 +383,34 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
         )),
         ("legacyOptionalIntMapField", JsObj())
       )*/
-
+      success
     }
 
     "get set from json string using lift-json parser" in {
-      checkMongoIsRunning
+      
 
       val mfftrFromJson = MongoFieldTypeTestRecord.fromJsonString(json)
-      mfftrFromJson must notBeEmpty
+      mfftrFromJson must not be empty
       mfftrFromJson foreach { tr =>
-        tr mustEqual mfttr
+        tr must_== mfttr
       }
 
       val ltrFromJson = ListTestRecord.fromJsonString(ljson)
-      ltrFromJson must notBeEmpty
+      ltrFromJson must not be empty
       ltrFromJson foreach { tr =>
-        tr mustEqual ltr
+        tr must_== ltr
       }
 
       val mtrFromJson = MapTestRecord.fromJsonString(mjson)
-      mtrFromJson must notBeEmpty
+      mtrFromJson must not be empty
       mtrFromJson foreach { tr =>
-        tr mustEqual mtr
+        tr must_== mtr
       }
+      success
     }
 
     "handle null" in {
-      checkMongoIsRunning
+      
 
       val ntr = NullTestRecord.createRecord
       ntr.nullstring.set(null)
@@ -425,7 +420,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
 
       val ntrFromDb = NullTestRecord.find(ntr.id)
 
-      ntrFromDb must notBeEmpty
+      ntrFromDb must not be empty
 
       ntrFromDb foreach { n =>
         // goes in as
@@ -443,11 +438,10 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
         n.jsonobjlist.value(1).id must_== ntr.jsonobjlist.value(1).id
         n.jsonobjlist.value(1).name must_== ntr.jsonobjlist.value(1).name
       }
+	    success
     }
 
     "handle Box using JsonBoxSerializer" in {
-      checkMongoIsRunning
-      
       val btr = BoxTestRecord.createRecord
       btr.jsonobjlist.set(
         BoxTestJsonObj("1", Empty, Full("Full String1"), Failure("Failure1")) ::
@@ -459,7 +453,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
 
       val btrFromDb = BoxTestRecord.find(btr.id)
 
-      btrFromDb must notBeEmpty
+      btrFromDb must not be empty
 
       btrFromDb foreach { b =>
         b.jsonobjlist.value.size must_== 2
@@ -469,6 +463,7 @@ object MongoRecordSpec extends Specification("MongoRecord Specification") with M
         sortedList(0).boxFull must_== Full("Full String1")
         sortedList(0).boxFail must_== Failure("Failure1")
       }
+	    success
     }
 
   }

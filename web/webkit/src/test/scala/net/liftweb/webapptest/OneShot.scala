@@ -17,7 +17,7 @@
 package net.liftweb
 package webapptest
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import util._
 import http._
@@ -31,6 +31,7 @@ import snippet.Counter
 
 
 object OneShot extends Specification with RequestKit {
+  sequential
 
   private def reachableLocalAddress = {
     val l = InetAddress.getLocalHost
@@ -49,11 +50,10 @@ object OneShot extends Specification with RequestKit {
 
   def baseUrl = jetty.baseUrl.toString
 
-  doBeforeSpec(jetty.start())
+  step(jetty.start())
 
   "ContainerVars" should {
 
-    setSequential()
 
     "have correct int default" in {
       val tmp = LiftRules.sessionCreator
@@ -137,8 +137,6 @@ object OneShot extends Specification with RequestKit {
 
   "OneShot" should {
 
-    setSequential()
-
     "fire once for oneshot" in {
       Counter.x = 0
 
@@ -175,7 +173,7 @@ object OneShot extends Specification with RequestKit {
     }
   }
 
-  doAfterSpec {
+  step {
     tryo {
       jetty.stop()
     }

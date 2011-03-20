@@ -17,7 +17,7 @@
 package net.liftweb
 package json
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 
 object XmlBugs extends Specification {
@@ -32,7 +32,7 @@ object XmlBugs extends Specification {
 
   "HarryH's XML with attributes parses correctly" in {
     val json = toJson(<tips><group type="Nearby"><tip><id>10</id></tip></group></tips>)
-    Printer.compact(render(json)) mustEqual """{"tips":{"group":{"type":"Nearby","tip":{"id":"10"}}}}"""
+    Printer.compact(render(json)) must_== """{"tips":{"group":{"type":"Nearby","tip":{"id":"10"}}}}"""
   }
 
   "Jono's XML with attributes parses correctly" in {
@@ -42,8 +42,8 @@ object XmlBugs extends Specification {
     val example2 = <word term="example" self="http://localhost:8080/word/example" available="true"></word>
     val expected2 = """{"self":"http://localhost:8080/word/example","term":"example","available":"true"}"""
 
-    Printer.compact(render(toJson(example1))) mustEqual expected1
-    Printer.compact(render(toJson(example2))) mustEqual expected2
+    Printer.compact(render(toJson(example1))) must_== expected1
+    Printer.compact(render(toJson(example2))) must_== expected2
   }
 
   "Nodes with attributes converted to correct JSON" in {
@@ -53,13 +53,13 @@ object XmlBugs extends Specification {
         <n id="11" x="bcd" />
       </root>
     val expected = """{"root":{"n":[{"x":"abc","id":"10"},{"x":"bcd","id":"11"}]}}"""
-    Printer.compact(render(toJson(xml))) mustEqual expected
+    Printer.compact(render(toJson(xml))) must_== expected
   }
 
   "XML with empty node is converted correctly to JSON" in {
     val xml =
       <tips><group type="Foo"></group><group type="Bar"><tip><text>xxx</text></tip><tip><text>yyy</text></tip></group></tips> 
     val expected = """{"tips":{"group":[{"type":"Foo"},{"type":"Bar","tip":[{"text":"xxx"},{"text":"yyy"}]}]}}"""
-    Printer.compact(render(toJson(xml))) mustEqual expected
+    Printer.compact(render(toJson(xml))) must_== expected
   }
 }

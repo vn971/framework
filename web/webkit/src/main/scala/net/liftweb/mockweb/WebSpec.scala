@@ -20,7 +20,8 @@ import javax.servlet.http.HttpServletRequest
 
 import scala.xml.NodeSeq
 
-import org.specs._
+import org.specs2.mutable._
+import org.specs2.execute._
 
 import common.{Box,Empty,Full}
 import http._
@@ -34,7 +35,7 @@ import mocks.MockHttpServletRequest
  * the Scaladoc, Please see the
  * source to WebSpecSpec.scala for an example of how to use this.
  */
-abstract class WebSpec extends Specification {
+trait WebSpec extends Specification { outer =>
 
 // TODO : Uncomment this code when LiftRules can be scoped
 ///**
@@ -176,11 +177,9 @@ abstract class WebSpec extends Specification {
       this(description, new MockHttpServletRequest(url, contextPath), session)
 
 
-    def in [T](expectations : => T)(implicit m : scala.reflect.ClassManifest[T]) = {
-      val example = exampleContainer.createExample(description)
-      if (sequential) example.setSequential()
+    def in [T <% Result](expectations : =>T) = {
 
-      example.in {
+      outer.inExample(description).in {
 // TODO : Uncomment this code when LiftRules can be scoped
 //        MockWeb.useLiftRules.doWith(useLiftRules) {
           MockWeb.testS(req, session) {
@@ -188,7 +187,7 @@ abstract class WebSpec extends Specification {
           }
 // TODO : Uncomment this code when LiftRules can be scoped
 //        }
-      }(m)
+      }
     }
   }
 
@@ -201,17 +200,15 @@ abstract class WebSpec extends Specification {
     def this (description : String, url : String, contextPath : String) =
       this(description, new MockHttpServletRequest(url, contextPath))
 
-    def in [T](expectations : Req => T)(implicit m : scala.reflect.ClassManifest[T]) = {
-      val example = exampleContainer.createExample(description)
-      if (sequential) example.setSequential()
+    def in [T <% Result](expectations : Req => T) = {
 
-      example.in {
+      outer.inExample(description).in {
 // TODO : Uncomment this code when LiftRules can be scoped
 //        MockWeb.useLiftRules.doWith(useLiftRules) {
           MockWeb.testReq(req)(expectations)
 // TODO : Uncomment this code when LiftRules can be scoped
 //        }
-      }(m)
+      }
     }
   }
 }

@@ -18,7 +18,7 @@ package net.liftweb
 package http
 package js
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import json._
 import JsonDSL._
@@ -28,7 +28,8 @@ import util.Helpers._
 /**
  * System under specification for JsExp.
  */
-object JsExpSpec extends Specification("JsExp Specification") {
+object JsExpSpec extends Specification {
+  "JsExp Specification".title
   "JsExp" should {
     "Deal with lift-json" in {
       val json = ("a" -> 4) ~ ("b" -> 44)

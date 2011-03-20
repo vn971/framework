@@ -17,7 +17,7 @@
 package net.liftweb
 package wizard
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import common._
 import util._
@@ -26,7 +26,8 @@ import http._
 /**
  * System under specification for Wizard.
  */
-object WizardSpec extends Specification("Wizard Specification") {
+object WizardSpec extends Specification {
+  "Wizard Specification".title
 
   val session: LiftSession = new LiftSession("", Helpers.randomString(20), Empty)
 
@@ -107,6 +108,7 @@ object WizardSpec extends Specification("Wizard Specification") {
 
       MyWizard.completeInfo.is must_== true
     }
+    success
   }
 
   "A wizard must be able to snapshot itself" in {
@@ -154,6 +156,7 @@ object WizardSpec extends Specification("Wizard Specification") {
 
       MyWizard.completeInfo.is must_== true
     }
+    success
   }
 }
 

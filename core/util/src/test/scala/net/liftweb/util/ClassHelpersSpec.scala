@@ -17,7 +17,7 @@
 package net.liftweb
 package util
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import common._
 import ClassHelpers._
@@ -26,11 +26,12 @@ import ClassHelpers._
 /**
  * Systems under specification for ClassHelpers.
  */
-object ClassHelpersSpec extends Specification("ClassHelpers Specification") {
+object ClassHelpersSpec extends Specification {
+  "ClassHelpers Specification".title
 
   "The findType function" should {
     "return a Full can with the found class when given the type, the name, and a list of packages to conform to" in {
-      findType[java.util.List[Object]]("ArrayList", List("java.util")) must_== Full(classOf[java.util.ArrayList[Object]])
+      findType[java.util.List[Object]]("ArrayList", List("java.util")) must be_===(Full(classOf[java.util.ArrayList[Object]]))
     }
     "return an Empty can if the class cannot be coerced to the expected type" in {
       findType[String]("ClassHelpers", List("net.liftweb.util")) must_== Empty
@@ -38,33 +39,33 @@ object ClassHelpersSpec extends Specification("ClassHelpers Specification") {
   }
   "the findClass function" should {
     "return a Full can with the found class when given the name and package" in {
-      findClass("ClassHelpers", List("net.liftweb.util")) must_== Full(classOf[ClassHelpers])
+      findClass("ClassHelpers", List("net.liftweb.util")) must be_===(Full(classOf[ClassHelpers]))
     }
     "return a Full can with the found class when given the name and package, with an underscored name instead of CamelCased" in {
-      findClass("class_helpers", List("net.liftweb.util")) must_== Full(classOf[ClassHelpers])
+      findClass("class_helpers", List("net.liftweb.util")) must be_===(Full(classOf[ClassHelpers]))
     }
     "return a Full can with the found class when given the name and a list of packages" in {
-      findClass("ClassHelpers", List("net.liftweb.util", "java.util")) must_== Full(classOf[ClassHelpers])
-      findClass("ArrayList", List("net.liftweb.util", "java.util")) must_== Full(classOf[java.util.ArrayList[_]])
+      findClass("ClassHelpers", List("net.liftweb.util", "java.util")) must be_===(Full(classOf[ClassHelpers]))
+      findClass("ArrayList", List("net.liftweb.util", "java.util")) must be_===(Full(classOf[java.util.ArrayList[_]]))
     }
     "return a Full can with the found class when given the name, a list of packages and a target type to conform to" in {
-      findClass("ArrayList", List("java.util"), classOf[java.util.List[Object]]) must_== Full(classOf[java.util.ArrayList[Object]])
+      findClass("ArrayList", List("java.util"), classOf[java.util.List[Object]]) must be_===(Full(classOf[java.util.ArrayList[Object]]))
     }
     "return an Empty can if no class is found given a name and package" in {
       findClass("ClassHelpers", List("net.liftweb.nothere")) must_== Empty
     }
     "return an Empty can if the class cannot be coerced to the expected type" in {
-      findClass("ClassHelpers", List("net.liftweb.util"), classOf[String]) must_== Empty
+      findClass("ClassHelpers", List("net.liftweb.util"), classOf[String]) must be_===(Empty)
     }
   }
 
   "The findClass function" should {
     "return a Full can with the found class when given a list of names and corresponding packages" in {
       findClass(List(("wrong name", List("net.liftweb.util", "other.package")),
-                     ("ClassHelpers", List("net.liftweb.util", "other.package")))) must_== Full(classOf[ClassHelpers])
+                     ("ClassHelpers", List("net.liftweb.util", "other.package")))) must be_==(Full(classOf[ClassHelpers]))
     }
     "use a list of modifiers functions to try to modify the original name in order to find the class" in {
-      findClass("classHelpers", List("net.liftweb.util"), List((n: String) => n.capitalize)) must_== Full(classOf[ClassHelpers])
+      findClass("classHelpers", List("net.liftweb.util"), List((n: String) => n.capitalize)) must be_===(Full(classOf[ClassHelpers]))
     }
   }
 
@@ -125,16 +126,16 @@ object ClassHelpersSpec extends Specification("ClassHelpers Specification") {
 
   "The invokeMethod function" should {
     "return a Failure if the class is null" in {
-      invokeMethod(null, "", "length") must beLike { case Failure(_, _, _) => true }
+      invokeMethod(null, "", "length") must beLike { case Failure(_, _, _) => ok }
     }
     "return a Failure if the instance is null" in {
-      invokeMethod(classOf[String], null, "length") must beLike { case Failure(_, _, _) => true }
+      invokeMethod(classOf[String], null, "length") must beLike { case Failure(_, _, _) => ok }
     }
     "return a Failure if the method name is null" in {
-      invokeMethod(classOf[String], "", null) must beLike { case Failure(_, _, _) => true }
+      invokeMethod(classOf[String], "", null) must beLike { case Failure(_, _, _) => ok }
     }
     "return a Failure if the method doesnt exist on the class" in {
-      invokeMethod(classOf[String], "", "isNotEmpty") must beLike { case Failure(_, _, _) => true }
+      invokeMethod(classOf[String], "", "isNotEmpty") must beLike { case Failure(_, _, _) => ok }
     }
     "return a Full can with the result if the method exist on the class" in {
       invokeMethod(classOf[String], "", "length") must_== Full(0)
@@ -164,7 +165,7 @@ object ClassHelpersSpec extends Specification("ClassHelpers Specification") {
       instantiate(classOf[String]) must_== Full("")
     }
     "return a failure if a class can not be instantiated with a new instance" in {
-      instantiate(classOf[java.util.Calendar]) must beLike { case Failure(_, _, _) => true }
+      instantiate(classOf[java.util.Calendar]) must beLike { case Failure(_, _, _) => ok }
     }
   }
 

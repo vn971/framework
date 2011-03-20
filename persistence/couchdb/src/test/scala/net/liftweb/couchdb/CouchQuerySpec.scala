@@ -21,25 +21,27 @@ import dispatch.{Http, StatusCode}
 import common._
 import json._
 import JsonDSL._
-import org.specs.Specification
+import org.specs2.mutable._
 import DocumentHelpers.jobjectToJObjectExtension
 
 
 /**
  * Systems under specification for CouchQuery.
  */
-object CouchQuerySpec extends Specification("CouchQuery Specification") {
+object CouchQuerySpec extends Specification {
+  "CouchQuery Specification".title
+  
   def setup = {
     val http = new Http
     val database = new Database("test")
-    (try { http(database delete) } catch { case StatusCode(_, _) => () }) must not(throwAnException[ConnectException]).orSkipExample
+    (try { http(database delete) } catch { case StatusCode(_, _) => () }) must not(throwA[ConnectException]).orSkip
     http(database create)
 
     (http, database)
   }
 
   private def verifyAndOpen[A](b: Box[A]): A = {
-    b must verify(_.isDefined)
+    b.isDefined must beTrue
     b.open_!
   }
 

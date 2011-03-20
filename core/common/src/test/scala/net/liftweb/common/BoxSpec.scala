@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2011 WorldWide Conferencing, LLC
+ * Copyright 2007-2010 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,28 +17,19 @@
 package net.liftweb
 package common
 
-import org.specs.{ScalaCheck, Specification}
-import org.scalacheck.{Arbitrary, Gen, Prop}
-import Gen._
-import Prop.forAll
+import org.specs2.mutable._
+import _root_.net.liftweb.common.Box._
 
-import Box._
-
-
-/**
- * System under specification for Box.
- */
-object BoxSpec extends Specification("Box Specification") with ScalaCheck with BoxGenerator {
-
+class BoxSpec extends Specification {
   "A Box" can {
     "be created from a Option. It is Empty if the option is None" in {
-      Box(None) mustBe Empty
+      Box(None) must be(Empty)
     }
-    "be created from a Option. It is Full(x) if the option is Some(x)" in {
+	"be created from a Option. It is Full(x) if the option is Some(x)" in {
       Box(Some(1)) must_== Full(1)
     }
     "be created from a List containing one element. It is Empty if the list is empty" in {
-      Box(Nil) mustBe Empty
+      Box(Nil) must be(Empty)
     }
     "be created from a List containing one element. It is Full(x) if the list is List(x)" in {
       Box(List(1)) must_== Full(1)
@@ -63,7 +54,6 @@ object BoxSpec extends Specification("Box Specification") with ScalaCheck with B
       Box.legacyNullTest(null) must_== Empty
     }
   }
-
   "A Box" should {
     "provide a 'choice' method to either apply a function to the Box value or return another default can" in {
       def gotIt = (x: Int) => Full("got it: " + x.toString)
@@ -72,7 +62,6 @@ object BoxSpec extends Specification("Box Specification") with ScalaCheck with B
       Empty.choice(gotIt)(Full("nothing")) must_== Full("nothing")
     }
   }
-
   "A Full Box" should {
     "not beEmpty" in {
       Full(1).isEmpty must beFalse
@@ -81,10 +70,10 @@ object BoxSpec extends Specification("Box Specification") with ScalaCheck with B
       Full(1).isDefined must beTrue
     }
     "return its value when opened" in {
-      Full(1).open_! mustBe 1
+      Full(1).open_! must_== 1
     }
     "return its value when opened with openOr(default value)" in {
-      Full(1) openOr 0 mustBe 1
+      Full(1) openOr 0 must_== 1
     }
     "return itself when or'ed with another Box" in {
       Full(1) or Full(2) must_== Full(1)
@@ -99,7 +88,7 @@ object BoxSpec extends Specification("Box Specification") with ScalaCheck with B
       Full(1) filter {_ > 0} must_== Full(1)
     }
     "define a 'filter' method, returning Empty if the filter is not satisfied" in {
-      Full(1) filter {_ == 0} mustBe Empty
+      Full(1) filter {_ == 0} must be(Empty)
     }
     "define a 'filterMsg' method, returning a Failure if the filter predicate is not satisfied" in {
       Full(1).filterMsg("not equal to 0")(_ == 0) must_== Failure("not equal to 0", Empty, Empty)
@@ -116,7 +105,7 @@ object BoxSpec extends Specification("Box Specification") with ScalaCheck with B
       Full(1) flatMap { x: Int => if (x > 0) Full("full") else Empty } must_== Full("full")
     }
     "define a 'flatMap' method transforming its value in another Box. If the value is transformed in an Empty can, the total result is an Empty can" in {
-      Full(0) flatMap { x: Int => if (x > 0) Full("full") else Empty } mustBe Empty
+      Full(0) flatMap { x: Int => if (x > 0) Full("full") else Empty } must be(Empty)
     }
     "define an 'elements' method returning an iterator containing its value" in {
       Full(1).elements.next must_== 1
@@ -155,49 +144,7 @@ object BoxSpec extends Specification("Box Specification") with ScalaCheck with B
     "define a 'asA' method returning Empty if the value is not the instance of a given type" in {
       Full("s").asA[Double] must_== Empty
     }
-
-    "define a 'asA' method must work with Boolean" in {
-      Full(true).asA[Boolean] must_== Full(true)
-      Full(3).asA[Boolean] must_== Empty
-    }
-
-    "define a 'asA' method must work with Character" in {
-      Full('a').asA[Char] must_== Full('a')
-      Full('a').asA[Boolean] must_== Empty
-    }
-
-    "define a 'asA' method must work with Byte" in {
-      Full(3.toByte).asA[Byte] must_== Full(3.toByte)
-      Full(3.toByte).asA[Boolean] must_== Empty
-    }
-
-    "define a 'asA' method must work with Double" in {
-      Full(44d).asA[Double] must_== Full(44D)
-      Full(44d).asA[Boolean] must_== Empty
-    }
-
-    "define a 'asA' method must work with Float" in {
-      Full(32f).asA[Float] must_== Full(32f)
-      Full(33f).asA[Boolean] must_== Empty
-    }
-
-    "define a 'asA' method must work with Integer" in {
-      Full(3).asA[Int] must_== Full(3)
-      Full(3).asA[Boolean] must_== Empty
-    }
-
-    "define a 'asA' method must work with Long" in {
-      Full(32L).asA[Long] must_== Full(32L)
-      Full(32L).asA[Boolean] must_== Empty
-    }
-
-    "define a 'asA' method must work with Short" in {
-      Full(8.toShort).asA[Short] must_== Full(8.toShort)
-      Full(8.toShort).asA[Boolean] must_== Empty
-    }
-
   }
-
   "An Empty Box" should {
     "beEmpty" in {
       Empty.isEmpty must beTrue
@@ -209,14 +156,14 @@ object BoxSpec extends Specification("Box Specification") with ScalaCheck with B
       {Empty.open_!; ()} must throwA[NullPointerException]
     }
     "return a default value if opened with openOr" in {
-      Empty.openOr(1) mustBe 1
+      Empty.openOr(1) must_== 1
     }
     "return the other Box if or'ed with another Box" in {
       Empty.or(Full(1)) must_== Full(1)
     }
     "return itself if filtered with a predicate" in {
       val empty: Box[Int] = Empty
-      empty.filter {_ > 0} mustBe Empty
+      empty.filter {_ > 0} must be(Empty)
     }
     "define an 'exists' method returning false" in {
       val empty: Box[Int] = Empty
@@ -224,7 +171,7 @@ object BoxSpec extends Specification("Box Specification") with ScalaCheck with B
     }
     "define a 'filter' method, returning Empty" in {
       val empty: Box[Int] = Empty
-      empty filter {_ > 0} mustBe Empty
+      empty filter {_ > 0} must be(Empty)
     }
     "define a 'filterMsg' method, returning a Failure" in {
       Empty.filterMsg("not equal to 0")(_ == 0) must_== Failure("not equal to 0", Empty, Empty)
@@ -232,14 +179,14 @@ object BoxSpec extends Specification("Box Specification") with ScalaCheck with B
     "define a 'foreach' doing nothing" in {
       var total = 0
       val empty: Box[Int] = Empty
-      empty foreach {total += _}
+      empty foreach { total += _ }
       total must_== 0
     }
     "define a 'map' method returning Empty" in {
-      Empty map {_.toString} mustBe Empty
+      Empty map { _.toString } must be(Empty)
     }
     "define a 'flatMap' method returning Empty" in {
-      Empty flatMap {x: Int => Full("full")} mustBe Empty
+      Empty flatMap { x: Int => Full("full") } must be(Empty)
     }
     "define an 'elements' method returning an empty iterator" in {
       Empty.elements.hasNext must beFalse
@@ -263,7 +210,6 @@ object BoxSpec extends Specification("Box Specification") with ScalaCheck with B
       Empty.asA[Double] must_== Empty
     }
   }
-
   "A Failure is an Empty Box which" can {
     "return its cause as an exception" in {
       case class LiftException(m: String) extends Exception
@@ -271,11 +217,10 @@ object BoxSpec extends Specification("Box Specification") with ScalaCheck with B
     }
     "return a chained list of causes" in {
       Failure("error",
-              Full(new Exception("broken")),
-              Full(Failure("nested cause", Empty, Empty))).chain must_== Full(Failure("nested cause", Empty, Empty))
+               Full(new Exception("broken")),
+               Full(Failure("nested cause", Empty, Empty))).chain must_== Full(Failure("nested cause", Empty, Empty))
     }
   }
-
   "A Failure is an Empty Box which" should {
     "return itself if mapped or flatmapped" in {
       Failure("error", Empty, Empty) map {_.toString} must_== Failure("error", Empty, Empty)
@@ -288,57 +233,4 @@ object BoxSpec extends Specification("Box Specification") with ScalaCheck with B
       Failure("error", Empty, Empty) ?~! "error2" must_== Failure("error2", Empty, Full(Failure("error", Empty, Empty)))
     }
   }
-
-  "A Box equals method" should {
-
-    "return true with comparing two identical Box messages" in {
-      val equality = (c1: Box[Int], c2: Box[Int]) => (c1, c2) match {
-        case (Empty, Empty) => c1 == c2
-        case (Full(x), Full(y)) => (c1 == c2) == (x == y)
-        case (Failure(m1, e1, l1), Failure(m2, e2, l2)) => (c1 == c2) == ((m1, e1, l1) == (m2, e2, l2))
-        case _ => c1 != c2
-      }
-      forAll(equality) must pass
-    }
-
-    "return false with comparing one Full and another object" in {
-      Full(1) must_!= "hello"
-    }
-
-    "return false with comparing one Empty and another object" in {
-      Empty must_!= "hello"
-    }
-
-    "return false with comparing one Failure and another object" in {
-      Failure("", Empty, Empty) must_!= "hello"
-    }
-  }
-
 }
-
-
-trait BoxGenerator {
-
-  implicit def genThrowable: Arbitrary[Throwable] = Arbitrary[Throwable] {
-    case object UserException extends Throwable
-    value(UserException)
-  }
-
-  implicit def genBox[T](implicit a: Arbitrary[T]): Arbitrary[Box[T]] = Arbitrary[Box[T]] {
-    frequency(
-      (3, value(Empty)),
-      (3, a.arbitrary.map(Full[T])),
-      (1, genFailureBox)
-    )
-  }
-
-  def genFailureBox: Gen[Failure] = for {
-    msgLen <- choose(0, 4)
-    msg <- listOfN(msgLen, alphaChar)
-    exception <- value(Full(new Exception("")))
-    chainLen <- choose(1, 5)
-    chain <- frequency((1, listOfN(chainLen, genFailureBox)), (3, value(Nil)))
-  } yield Failure(msg.mkString, exception, Box(chain.headOption))
-
-}
-

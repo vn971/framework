@@ -18,7 +18,8 @@ package net.liftweb
 package http
 
 import xml._
-import org.specs.Specification
+import org.specs2.mutable._
+import org.specs2.execute._
 
 import common._
 import util.Helpers._
@@ -27,7 +28,8 @@ import util.Helpers._
 /**
  * System under specification for SnippetSpec.
  */
-object SnippetSpec extends Specification("SnippetSpec Specification") {
+object SnippetSpec extends Specification {
+  "SnippetSpec Specification".title
   def makeReq = new Req(Req.NilPath, "", GetRequest, Empty, null,
                     System.nanoTime, System.nanoTime, false,
                     () => ParamCalcInfo(Nil, Map.empty, Nil, Empty), Map())
@@ -367,6 +369,7 @@ object SnippetSpec extends Specification("SnippetSpec Specification") {
 
       ret.open_! must ==/ (<yak/>)
       */
+      Pending("- FIXME SBT: Very very inconsistent in the build environment, pendingUntilFixed misreports")
     }
 
     "Check snippets via run" in {
@@ -382,6 +385,7 @@ object SnippetSpec extends Specification("SnippetSpec Specification") {
 
       (ret.open_! \ "@name").text.length must be > 0
       */
+      Pending("- FIXME SBT: Very very inconsistent in the build environment, pendingUntilFixed misreports")
     }
 
 
@@ -444,6 +448,7 @@ object SnippetSpec extends Specification("SnippetSpec Specification") {
           }
         }
       }
+      success
     }
 
     "handle prefixes" in {
@@ -469,6 +474,7 @@ object SnippetSpec extends Specification("SnippetSpec Specification") {
           }
         }
       }
+      success
     }
   }
 }

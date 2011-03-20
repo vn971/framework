@@ -30,7 +30,7 @@ import org.apache.directory.server.xdbm.Index
 import org.apache.directory.server.core.entry.ServerEntry
 import org.apache.directory.shared.ldap.name.LdapDN
 
-import org.specs.Specification
+import org.specs2.mutable._
 
 import common._
 import util.Helpers.tryo
@@ -39,7 +39,9 @@ import util.Helpers.tryo
 /**
  * Systems under specification for Ldap.
  */
-object LdapSpec extends Specification("LDAP Specification") {
+object LdapSpec extends Specification {
+  "LDAP Specification".title
+  
   val ROOT_DN = "dc=ldap,dc=liftweb,dc=net"
 
   // Thanks to Francois Armand for pointing this utility out!
@@ -54,7 +56,7 @@ object LdapSpec extends Specification("LDAP Specification") {
    * http://directory.apache.org/apacheds/1.5/41-embedding-apacheds-into-an-application.html
    * http://stackoverflow.com/questions/1560230/running-apache-ds-embedded-in-my-application
    */
-  doBeforeSpec {
+  step {
     (try {
       // Disable changelog
       service.getChangeLog.setEnabled(false)
@@ -66,7 +68,7 @@ object LdapSpec extends Specification("LDAP Specification") {
           val dir = new java.io.File(d)
           dir.mkdirs
           service.setWorkingDirectory(dir)
-        case _ => fail("No working dir set for ApacheDS!")
+        case _ => failure("No working dir set for ApacheDS!")
       }
 
       // Set up a partition
@@ -102,12 +104,11 @@ object LdapSpec extends Specification("LDAP Specification") {
 
       ldap.start()
 
+      println("Started LDAP server on port " + service_port)
     }) must not(throwAn[Exception]).orSkipExample
   }
 
   "LDAPVendor" should {
-    shareVariables()
-
     object myLdap extends LDAPVendor
 
     myLdap.configure(Map("ldap.url" -> "ldap://localhost:%d/".format(service_port),
@@ -136,7 +137,7 @@ object LdapSpec extends Specification("LDAP Specification") {
   }
 
 
-  doAfterSpec {
+  step {
     ldap.stop()
     service.shutdown()
 
