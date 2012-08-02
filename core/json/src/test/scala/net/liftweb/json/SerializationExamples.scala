@@ -263,21 +263,6 @@ object CustomSerializerExamples extends Specification {
     }
   ))
 
-  class IndexedSeqSerializer extends Serializer[IndexedSeq[_]] {
-    def deserialize(implicit format: Formats) = {
-      case (TypeInfo(clazz, ptype), json) if classOf[IndexedSeq[_]].isAssignableFrom(clazz) => json match {
-        case JArray(xs) => 
-          val t = ptype.getOrElse(throw new MappingException("parameterized type not known"))
-          xs.map(x => Extraction.extract(x, TypeInfo(t.getActualTypeArguments()(0).asInstanceOf[Class[_]], None))).toIndexedSeq
-        case x => throw new MappingException("Can't convert " + x + " to IndexedSeq")
-      }
-    }
-
-    def serialize(implicit format: Formats) = {
-      case i: IndexedSeq[_] => JArray(i.map(Extraction.decompose).toList)
-    }
-  }
-
   implicit val formats =  Serialization.formats(NoTypeHints) + 
     new IntervalSerializer + new PatternSerializer + new DateSerializer + new IndexedSeqSerializer
 
@@ -302,6 +287,21 @@ object CustomSerializerExamples extends Specification {
   val iser = swrite(xs)
   iser mustEqual """{"xs":["a","b","c"]}"""
   read[Indexed](iser).xs.toList mustEqual List("a","b","c") 
+}
+
+class IndexedSeqSerializer extends Serializer[IndexedSeq[_]] {
+  def deserialize(implicit format: Formats) = {
+    case (TypeInfo(clazz, ptype), json) if classOf[IndexedSeq[_]].isAssignableFrom(clazz) => json match {
+      case JArray(xs) => 
+        val t = ptype.getOrElse(throw new MappingException("parameterized type not known"))
+        xs.map(x => Extraction.extract(x, TypeInfo(t.getActualTypeArguments()(0).asInstanceOf[Class[_]], None))).toIndexedSeq
+      case x => throw new MappingException("Can't convert " + x + " to IndexedSeq")
+    }
+  }
+
+  def serialize(implicit format: Formats) = {
+    case i: IndexedSeq[_] => JArray(i.map(Extraction.decompose).toList)
+  }
 }
 
 case class Indexed(xs: IndexedSeq[String])
