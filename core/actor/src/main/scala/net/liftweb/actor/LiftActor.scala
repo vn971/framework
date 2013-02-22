@@ -303,7 +303,7 @@ trait SpecializedLiftActor[T] extends SimpleActor[T]  {
         }
       }
     } catch {
-      case e =>
+      case e: Throwable =>
         if (eh.isDefinedAt(e)) eh(e)
         throw e
     } finally {
