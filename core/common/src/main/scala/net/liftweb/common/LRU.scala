@@ -29,7 +29,7 @@ private[common] trait LinkedListElem[T1, T2] {
     _next._prev = _prev
   }
 
-  private[common] def addAtHead(what: LinkedListElem[T1, T2]) {
+  private[common] def addAtHead(what: LinkedListElem[T1, T2]): LinkedListElem[T1, T2] = {
     what._next = _next
     what._prev = this
     _next._prev = what
@@ -37,7 +37,7 @@ private[common] trait LinkedListElem[T1, T2] {
     what
   }
 
-  private[common] def addAtTail(what: LinkedListElem[T1, T2]) {
+  private[common] def addAtTail(what: LinkedListElem[T1, T2]): LinkedListElem[T1, T2] = {
     what._prev = _prev
     what._next = this
     _prev._next = what
