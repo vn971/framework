@@ -183,6 +183,7 @@ trait BindHelpers {
                  elem.label,
                  fix(elem.attributes),
                  elem.scope,
+                 elem.minimizeEmpty,
                  elem.child :_*)
       }
       case _ => elem % new UnprefixedAttribute("class", cssClass, Null)
@@ -721,19 +722,6 @@ trait BindHelpers {
     (("#"+id) #> replacement).apply(in)
   }
 
-  /**
-   *  transforms a Box into a Text node
-   */
-  @deprecated("use -> instead", "2.4")
-  object BindParamAssoc {
-    implicit def canStrBoxNodeSeq(in: Box[Any]): Box[NodeSeq] = in.map(_ match {
-      case null => Text("null")
-      case v => v.toString match {
-        case null => NodeSeq.Empty
-        case str => Text(str)
-      }
-    })
-  }
 
   /**
    * takes a NodeSeq and applies all the attributes to all the Elems at the top level of the
@@ -975,10 +963,11 @@ trait BindHelpers {
             val fixedLabel = av.substring(nsColon.length)
 
             val fake = new Elem(namespace, fixedLabel, fixedAttrs,
-                                e.scope, new Elem(e.namespace,
+                                e.scope, e.minimizeEmpty, new Elem(e.namespace,
                                                   e.label,
                                                   fixedAttrs,
                                                   e.scope,
+                                                  e.minimizeEmpty,
                                                   e.child :_*))
 
             BindHelpers._currentNode.doWith(fake) {
@@ -1013,8 +1002,7 @@ trait BindHelpers {
             }
           }
           case Group(nodes) => Group(in_bind(nodes))
-          case s: Elem => Elem(s.prefix, s.label, attrBind(s.attributes), if (preserveScope) s.scope else TopScope,
-                               in_bind(s.child): _*)
+          case s: Elem => Elem(s.prefix, s.label, attrBind(s.attributes), if (preserveScope) s.scope else TopScope, s.minimizeEmpty, in_bind(s.child): _*)
           case n => n
         }
       }
@@ -1117,7 +1105,7 @@ trait BindHelpers {
           }
         }
         case Group(nodes) => Group(bind(vals, nodes))
-        case s: Elem => Elem(node.prefix, node.label, node.attributes, node.scope, bind(vals, node.child, false, unusedBindings): _*)
+        case s: Elem => Elem(node.prefix, node.label, node.attributes, node.scope, false, bind(vals, node.child, false, unusedBindings): _*)
         case n => node
       }
     }
@@ -1350,7 +1338,7 @@ trait BindHelpers {
                    in.label, in.attributes.filter {
                      case up: UnprefixedAttribute => up.key != "id"
                      case _ => true
-                   }, in.scope, in.child :_*)
+                   }, in.scope, in.minimizeEmpty, in.child :_*)
           } else {
             ids += id.text
             in
@@ -1388,20 +1376,16 @@ trait BindHelpers {
                        in.label, in.attributes.filter {
                          case up: UnprefixedAttribute => up.key != "id"
                          case _ => true
-                       }, in.scope, in.child.map(ensure) :_*)
+                       }, in.scope, in.minimizeEmpty, in.child.map(ensure) :_*)
             } else {
               ids += id.text
-              new Elem(in.prefix,
-                       in.label, in.attributes,
-                       in.scope, in.child.map(ensure) :_*)
+              new Elem(in.prefix, in.label, in.attributes, in.scope, in.minimizeEmpty, in.child.map(ensure) :_*)
             }
             
           }
           
           case _ => 
-            new Elem(in.prefix,
-                     in.label, in.attributes,
-                     in.scope, in.child.map(ensure) :_*)
+            new Elem(in.prefix, in.label, in.attributes, in.scope, in.minimizeEmpty, in.child.map(ensure) :_*)
         }
       
       case x => x

@@ -39,7 +39,7 @@ trait StringHelpers {
       val tlr = Class.forName("java.util.concurrent.ThreadLocalRandom")
       Full(tlr.getMethod("current"))
     } catch {
-      case e =>
+      case e: Throwable =>
       Failure("ThreadLocalRandom is not available.", Full(e), Empty)
     }
   }
