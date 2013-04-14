@@ -110,6 +110,21 @@ class LiftFrameworkProject(info: ProjectInfo) extends ParentProject(info) with L
 
     // System properties necessary during test TODO: Figure out how to make this a subdir of persistence/ldap/
     System.setProperty("apacheds.working.dir", (outputPath / "apacheds").absolutePath)
+
+    override def pomExtra =
+      super.pomExtra ++
+        <scm>
+          <connection>scm:git:git@github.com:Lift/framework.git</connection>
+          <url>git@github.com:Lift/framework.git</url>
+        </scm>
+        <developers>
+          <developer>
+            <id>dpp</id>
+            <name>David Pollak</name>
+            <email>feederofthebears@gmail.com</email>
+          </developer>
+        </developers>
+        <description>{projectNameFormal.value}</description>
   }
 
 }
