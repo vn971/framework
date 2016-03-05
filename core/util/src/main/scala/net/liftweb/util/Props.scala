@@ -39,6 +39,7 @@ private[util] trait Props extends Logger {
       .flatMap(_.get(name))
       .headOption
       .map(interpolate)
+      .toBox.failMsg(s"could not load configuration property '$name'")
   }
 
   private[this] val interpolateRegex = """(.*?)\Q${\E(.*?)\Q}\E([^$]*)""".r
@@ -65,14 +66,12 @@ private[util] trait Props extends Logger {
     }
   }
 
-  // def apply(name: String): String = props(name)
-
-  def getInt(name: String): Box[Int] = get(name).map(toInt) // toInt(props.get(name))
-  def getInt(name: String, defVal: Int): Int = getInt(name) openOr defVal // props.get(name).map(toInt(_)) getOrElse defVal
+  def getInt(name: String): Box[Int] = get(name).map(toInt)
+  def getInt(name: String, defVal: Int): Int = getInt(name) openOr defVal
   def getLong(name: String): Box[Long] = get(name).flatMap(asLong)
-  def getLong(name: String, defVal: Long): Long = getLong(name) openOr defVal // props.get(name).map(toLong(_)) getOrElse defVal
+  def getLong(name: String, defVal: Long): Long = getLong(name) openOr defVal
   def getBool(name: String): Box[Boolean] = get(name).map(toBoolean)
-  def getBool(name: String, defVal: Boolean): Boolean = getBool(name) openOr defVal // props.get(name).map(toBoolean(_)) getOrElse defVal
+  def getBool(name: String, defVal: Boolean): Boolean = getBool(name) openOr defVal
   def get(name: String, defVal: String):String = get(name) getOrElse defVal
 
   /**

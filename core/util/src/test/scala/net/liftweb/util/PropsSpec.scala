@@ -17,7 +17,7 @@
 package net.liftweb
 package util
 
-import net.liftweb.common.Full
+import net.liftweb.common._
 import org.specs2.mutable.Specification
 import org.specs2.mutable.After
 import Props.RunModes._
@@ -106,6 +106,11 @@ object PropsSpec extends Specification {
       val prop = testProps.get("new.prop")
 
       prop must_== Full("new.value")
+    }
+
+    "Have explanatory result Box for non-existent properties" in {
+      val nonExistent = TestProps().get("non-existent")
+      nonExistent must_== Failure("could not load configuration property 'non-existent'")
     }
 
     "Not interpolate values when no interpolator is given" in {
